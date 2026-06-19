@@ -11,7 +11,7 @@ body { background: #0a0a0a; color: #f0f0f0; font-family: 'DM Sans', sans-serif; 
 .app { display: flex; min-height: 100vh; }
 
 /* SIDEBAR */
-.sidebar { width: 258px; background: #111; border-right: 1px solid #222; position: fixed; height: 100vh; display: flex; flex-direction: column; overflow-y: auto; z-index: 50; }
+.sidebar { width: 220px; background: #111; border-right: 1px solid #222; position: fixed; height: 100vh; display: flex; flex-direction: column; overflow-y: auto; z-index: 50; }
 .logo { padding: 18px 16px; border-bottom: 1px solid #222; display: flex; align-items: center; gap: 10px; }
 .logo-icon { width: 38px; height: 38px; background: linear-gradient(135deg, #ff2200, #ff8800); border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
 .logo-name { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 16px; color: #ff5500; }
@@ -23,7 +23,7 @@ body { background: #0a0a0a; color: #f0f0f0; font-family: 'DM Sans', sans-serif; 
 .nav-btn.on { background: linear-gradient(90deg, #ff2200, #ff5500); color: #fff; font-weight: 600; }
 
 /* MAIN */
-.main { margin-left: 258px; flex: 1; padding: 28px 30px; }
+.main { margin-left: 220px; flex: 1; padding: 28px 30px; }
 .page-h { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 10px; }
 .page-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; }
 .page-title small { font-size: 13px; color: #555; font-weight: 400; margin-left: 8px; }
@@ -125,8 +125,7 @@ textarea.inp { resize: vertical; min-height: 65px; }
 </style>
 </head>
 <body>
-<div id="ticket-page" style="display:none"></div>
-<div class="app" id="app-root">
+<div class="app">
 
 <!-- SIDEBAR -->
 <aside class="sidebar">
@@ -145,7 +144,6 @@ textarea.inp { resize: vertical; min-height: 65px; }
     <button class="nav-btn"    id="nb-riparazioni"  onclick="vai('riparazioni',this)">&#128295; Riparazioni</button>
     <button class="nav-btn"    id="nb-clienti"      onclick="vai('clienti',this)">&#128101; Clienti</button>
     <button class="nav-btn"    id="nb-magazzino"    onclick="vai('magazzino',this)">&#128230; Magazzino</button>
-    <button class="nav-btn"    id="nb-ordini"      onclick="vai('ordini',this)">&#128666; Ordini Clienti <span id="nb-ordini-cnt" style="background:#4080ff;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:1px 6px;margin-left:auto;display:none">0</span></button>
     <button class="nav-btn"    id="nb-fatture"      onclick="vai('fatture',this)">&#129534; Fatture</button>
     <button class="nav-btn"    id="nb-statistiche"  onclick="vai('statistiche',this)">&#128200; Statistiche</button>
     <button class="nav-btn"    id="nb-storico"      onclick="vai('storico',this)">&#128203; Storico</button>
@@ -191,7 +189,7 @@ textarea.inp { resize: vertical; min-height: 65px; }
     <input class="inp" style="flex:1;min-width:180px" placeholder="Cerca cliente, dispositivo, IMEI..." oninput="filtraR(this.value)">
     <select class="inp" style="width:170px" onchange="filtraRS(this.value)">
       <option value="">Tutti gli stati</option>
-      <option>In attesa</option><option>Preventivo inviato</option><option>In lavorazione</option><option>Ricambio ordinato</option><option>Pronto</option><option>Consegnato</option>
+      <option>In attesa</option><option>In lavorazione</option><option>Ricambio ordinato</option><option>Pronto</option><option>Consegnato</option>
     </select>
   </div>
   <div class="card">
@@ -203,7 +201,19 @@ textarea.inp { resize: vertical; min-height: 65px; }
 <section id="sec-clienti" class="sec">
   <div class="page-h">
     <div class="page-title">Clienti <small>Anagrafica</small></div>
-    <input class="inp" id="cl-q" placeholder="Cerca..." oninput="renderClienti()" style="width:230px">
+    <div style="display:flex;gap:8px">
+      <select class="inp" id="cl-cat" onchange="renderClienti()" style="width:170px">
+        <option value="">Tutte le categorie</option>
+        <option value="Smartphone">Smartphone</option>
+        <option value="PC">PC</option>
+        <option value="Notebook">Notebook</option>
+        <option value="Tablet">Tablet</option>
+        <option value="Console">Console</option>
+        <option value="Elettrodomestico">Elettrodomestico</option>
+        <option value="Altro">Altro</option>
+      </select>
+      <input class="inp" id="cl-q" placeholder="Cerca..." oninput="renderClienti()" style="width:230px">
+    </div>
   </div>
   <div class="card">
     <table><thead><tr><th>Cliente</th><th>Telefono</th><th>Email</th><th>Riparazioni</th><th>Ultima</th><th>Spesa EUR</th><th>Azioni</th></tr></thead>
@@ -218,52 +228,8 @@ textarea.inp { resize: vertical; min-height: 65px; }
     <button class="btn btn-p" onclick="mostraModaleM()">+ Aggiungi Pezzo</button>
   </div>
   <div id="mag-alert"></div>
-  <div class="card" style="margin-bottom:12px">
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-      <input class="inp" id="mag-search" placeholder="&#128269; Cerca per descrizione, codice o categoria..." style="flex:1;min-width:220px" oninput="renderMag()">
-      <select class="inp" id="mag-filter-cat" style="width:160px" onchange="renderMag()">
-        <option value="">Tutte le categorie</option>
-        <option>Schermo</option><option>Batteria</option><option>Connettore</option>
-        <option>Fotocamera</option><option>Scocca</option><option>Scheda madre</option><option>Altro</option>
-      </select>
-      <select class="inp" id="mag-filter-disp" style="width:150px" onchange="renderMag()">
-        <option value="">Tutti</option>
-        <option value="disp">Disponibili</option>
-        <option value="esau">Esauriti</option>
-        <option value="bassa">Scorta bassa</option>
-      </select>
-      <button class="btn btn-g btn-sm" style="border-color:#4080ff;color:#4080ff;white-space:nowrap" onclick="apriListino()">&#128176; Listino Ufficiale</button>
-    </div>
-    <div id="mag-search-info" style="font-size:11px;color:#555;margin-top:8px;font-family:'DM Mono',monospace"></div>
-  </div>
   <div class="card">
     <table><thead><tr><th>Codice</th><th>Descrizione</th><th>Cat.</th><th>Qta</th><th>P.Acq EUR</th><th>P.Vend EUR</th><th>Azioni</th></tr></thead><tbody id="mag-tb"></tbody></table>
-  </div>
-</section>
-
-<!-- ORDINI CLIENTI -->
-<section id="sec-ordini" class="sec">
-  <div class="page-h">
-    <div class="page-title">&#128666; Ordini Clienti</div>
-    <button class="btn btn-p" onclick="apriNuovoOrdine()">+ Nuovo Ordine</button>
-  </div>
-  <div id="ord-alert"></div>
-  <div class="card" style="margin-bottom:12px">
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-      <input class="inp" id="ord-search" placeholder="&#128269; Cerca per cliente o articolo..." style="flex:1;min-width:200px" oninput="renderOrdini()">
-      <select class="inp" id="ord-filter-stato" style="width:170px" onchange="renderOrdini()">
-        <option value="">Tutti gli stati</option>
-        <option value="In attesa">In attesa</option>
-        <option value="Ordinato">Ordinato</option>
-        <option value="Arrivato">Arrivato</option>
-        <option value="Consegnato">Consegnato</option>
-        <option value="Annullato">Annullato</option>
-      </select>
-    </div>
-    <div id="ord-info" style="font-size:11px;color:#555;margin-top:8px;font-family:'DM Mono',monospace"></div>
-  </div>
-  <div class="card">
-    <table><thead><tr><th>ID</th><th>Cliente</th><th>Articolo</th><th>Qta</th><th>Note</th><th>Data</th><th>Stato</th><th>Azioni</th></tr></thead><tbody id="ord-tb"></tbody></table>
   </div>
 </section>
 
@@ -367,6 +333,18 @@ textarea.inp { resize: vertical; min-height: 65px; }
   <div class="modal" style="width:600px">
     <div class="modal-hd"><div class="modal-t">Nuova Scheda Riparazione</div><button class="modal-x" onclick="chiudiM('modal-r')">x</button></div>
     <div class="modal-b">
+      <div class="fg">
+        <label class="fl">Categoria Dispositivo *</label>
+        <select class="inp" id="nr-categoria">
+          <option value="Smartphone">Smartphone</option>
+          <option value="PC">PC</option>
+          <option value="Notebook">Notebook</option>
+          <option value="Tablet">Tablet</option>
+          <option value="Console">Console</option>
+          <option value="Elettrodomestico">Elettrodomestico</option>
+          <option value="Altro">Altro</option>
+        </select>
+      </div>
       <div class="fr2">
         <div class="fg"><label class="fl">Nome Cliente *</label><input class="inp" id="nr-nome" placeholder="Mario Rossi" autocomplete="off" oninput="acInput(this.value)" onkeydown="acKey(event)"><div id="ac-drop" style="display:none;position:absolute;background:#1a1a1a;border:1px solid #ff5500;border-radius:0 0 7px 7px;z-index:200;max-height:170px;overflow-y:auto;width:240px"></div></div>
         <div class="fg"><label class="fl">Telefono</label><input class="inp" id="nr-tel" placeholder="333 1234567"></div>
@@ -429,7 +407,7 @@ textarea.inp { resize: vertical; min-height: 65px; }
         <div class="fg"><label class="fl">Consegna Prevista</label><input class="inp" id="nr-consegna" type="date"></div>
         <div class="fg"><label class="fl">Stato</label>
           <select class="inp" id="nr-stato">
-            <option>In attesa</option><option>Preventivo inviato</option><option>In lavorazione</option><option>Ricambio ordinato</option><option>Pronto</option><option>Consegnato</option>
+            <option>In attesa</option><option>In lavorazione</option><option>Ricambio ordinato</option><option>Pronto</option><option>Consegnato</option>
           </select>
         </div>
       </div>
@@ -448,7 +426,22 @@ textarea.inp { resize: vertical; min-height: 65px; }
       </div>
       <div class="fg"><label class="fl">Problema Segnalato *</label><textarea class="inp" id="nr-problema" placeholder="Es: schermo rotto..."></textarea></div>
       <div class="fg"><label class="fl">Note Tecniche</label><textarea class="inp" id="nr-note" placeholder="Note interne..."></textarea></div>
-      <div class="fg"><label class="fl">Stato Preventivo WhatsApp</label><select class="inp" id="nr-ticket-risposta"><option value="">— Nessuno —</option><option value="inviato">&#128228; Preventivo Inviato</option><option value="accettato">&#9989; Preventivo Accettato</option><option value="rifiutato">&#10060; Preventivo Rifiutato</option></select></div>
+      <div class="fg" style="border-top:1px solid #2a2a2a;padding-top:12px;margin-top:4px">
+        <label class="fl">Ricambio da Magazzino (opzionale)</label>
+        <div class="fr3">
+          <div class="fg" style="margin-bottom:0">
+            <select class="inp" id="nr-ricambio" onchange="aggQtaMaxRicambio('nr')">
+              <option value="">-- Nessun ricambio --</option>
+            </select>
+          </div>
+          <div class="fg" style="margin-bottom:0">
+            <input class="inp" id="nr-ricambio-qty" type="number" min="1" value="1" placeholder="Quantita">
+          </div>
+          <div class="fg" style="margin-bottom:0;display:flex;align-items:center">
+            <span id="nr-ricambio-info" style="font-size:11px;color:#777;font-family:'DM Mono',monospace">Seleziona un articolo</span>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="modal-ft">
       <button class="btn btn-g" onclick="chiudiM('modal-r')">Annulla</button>
@@ -463,6 +456,18 @@ textarea.inp { resize: vertical; min-height: 65px; }
     <div class="modal-hd"><div class="modal-t">Modifica Riparazione</div><button class="modal-x" onclick="chiudiM('modal-e')">x</button></div>
     <div class="modal-b">
       <input type="hidden" id="e-id">
+      <div class="fg">
+        <label class="fl">Categoria Dispositivo *</label>
+        <select class="inp" id="e-categoria">
+          <option value="Smartphone">Smartphone</option>
+          <option value="PC">PC</option>
+          <option value="Notebook">Notebook</option>
+          <option value="Tablet">Tablet</option>
+          <option value="Console">Console</option>
+          <option value="Elettrodomestico">Elettrodomestico</option>
+          <option value="Altro">Altro</option>
+        </select>
+      </div>
       <div class="fr2">
         <div class="fg"><label class="fl">Nome Cliente *</label><input class="inp" id="e-nome"></div>
         <div class="fg"><label class="fl">Telefono</label><input class="inp" id="e-tel"></div>
@@ -525,7 +530,7 @@ textarea.inp { resize: vertical; min-height: 65px; }
         <div class="fg"><label class="fl">Consegna Prevista</label><input class="inp" id="e-consegna" type="date"></div>
         <div class="fg"><label class="fl">Stato</label>
           <select class="inp" id="e-stato">
-            <option>In attesa</option><option>Preventivo inviato</option><option>In lavorazione</option><option>Ricambio ordinato</option><option>Pronto</option><option>Consegnato</option>
+            <option>In attesa</option><option>In lavorazione</option><option>Ricambio ordinato</option><option>Pronto</option><option>Consegnato</option>
           </select>
         </div>
       </div>
@@ -544,14 +549,23 @@ textarea.inp { resize: vertical; min-height: 65px; }
       </div>
       <div class="fg"><label class="fl">Problema Segnalato *</label><textarea class="inp" id="e-problema"></textarea></div>
       <div class="fg"><label class="fl">Note Tecniche</label><textarea class="inp" id="e-note"></textarea></div>
-      <div class="fg">
-        <label class="fl">Stato Preventivo WhatsApp</label>
-        <select class="inp" id="e-ticket-risposta">
-          <option value="">— Nessuno —</option>
-          <option value="inviato">📤 Preventivo Inviato</option>
-          <option value="accettato">✅ Preventivo Accettato</option>
-          <option value="rifiutato">❌ Preventivo Rifiutato</option>
-        </select>
+      <div class="fg" style="border-top:1px solid #2a2a2a;padding-top:12px;margin-top:4px">
+        <label class="fl">Ricambi Usati</label>
+        <div id="e-ricambi-usati" style="font-size:12px;color:#aaa;margin-bottom:8px">Nessun ricambio registrato</div>
+        <label class="fl">Aggiungi ricambio dal Magazzino (opzionale)</label>
+        <div class="fr3">
+          <div class="fg" style="margin-bottom:0">
+            <select class="inp" id="e-ricambio" onchange="aggQtaMaxRicambio('e')">
+              <option value="">-- Nessun ricambio --</option>
+            </select>
+          </div>
+          <div class="fg" style="margin-bottom:0">
+            <input class="inp" id="e-ricambio-qty" type="number" min="1" value="1" placeholder="Quantita">
+          </div>
+          <div class="fg" style="margin-bottom:0;display:flex;align-items:center">
+            <span id="e-ricambio-info" style="font-size:11px;color:#777;font-family:'DM Mono',monospace">Seleziona un articolo</span>
+          </div>
+        </div>
       </div>
     </div>
     <div class="modal-ft">
@@ -568,8 +582,7 @@ textarea.inp { resize: vertical; min-height: 65px; }
     <div class="modal-b"><div id="scheda-body"></div></div>
     <div class="modal-ft">
       <button class="btn btn-g" onclick="chiudiM('modal-s')">Chiudi</button>
-      <button class="btn btn-g" style="border-color:#40d080;color:#40d080" onclick="stampaPOS()">&#128438; Stampa POS 80mm</button>
-      <button class="btn btn-p" onclick="stampaScheda()">&#128438; Stampa A4</button>
+      <button class="btn btn-p" onclick="stampaScheda()">Stampa</button>
     </div>
   </div>
 </div>
@@ -655,142 +668,6 @@ textarea.inp { resize: vertical; min-height: 65px; }
   </div>
 </div>
 
-<!-- MODAL LISTINO UFFICIALE -->
-<div class="modal-bg" id="modal-listino">
-  <div class="modal" style="width:680px;max-height:90vh">
-    <div class="modal-hd">
-      <div class="modal-t">&#128176; Listino Prezzi Ufficiali</div>
-      <button class="modal-x" onclick="chiudiM('modal-listino')">x</button>
-    </div>
-    <div class="modal-b" style="padding:0">
-      <div style="padding:12px 16px;border-bottom:1px solid #1a1a1a;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <select class="inp" id="lst-brand" style="width:140px" onchange="renderListino()">
-          <option value="apple">Apple</option>
-          <option value="samsung">Samsung</option>
-          <option value="xiaomi">Xiaomi</option>
-          <option value="huawei">Huawei</option>
-        </select>
-        <select class="inp" id="lst-cat" style="width:140px" onchange="renderListino()">
-          <option value="">Tutte le categorie</option>
-          <option>Schermo</option>
-          <option>Batteria</option>
-          <option>Connettore</option>
-          <option>Fotocamera</option>
-          <option>Scocca</option>
-        </select>
-        <input class="inp" id="lst-search" placeholder="Cerca modello..." style="flex:1;min-width:140px" oninput="renderListino()">
-        <div style="font-size:10px;color:#555;width:100%">&#9432; Prezzi indicativi di riferimento (IVA inclusa). Fonte: listini ufficiali e tariffari service autorizzati 2024-2025.</div>
-      </div>
-      <div id="lst-tb" style="overflow-y:auto;max-height:420px"></div>
-    </div>
-    <div class="modal-ft">
-      <button class="btn btn-g" onclick="chiudiM('modal-listino')">Chiudi</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL NUOVO ORDINE -->
-<div class="modal-bg" id="modal-nord">
-  <div class="modal" style="width:520px">
-    <div class="modal-hd">
-      <div class="modal-t" id="nord-title">Nuovo Ordine Cliente</div>
-      <button class="modal-x" onclick="chiudiM('modal-nord')">x</button>
-    </div>
-    <div class="modal-b">
-      <input type="hidden" id="nord-idx" value="-1">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="fg"><label class="fl">Cliente *</label><input class="inp" id="nord-nome" placeholder="Nome cliente"></div>
-        <div class="fg"><label class="fl">Telefono</label><input class="inp" id="nord-tel" placeholder="3331234567"></div>
-      </div>
-      <div class="fg" style="margin-top:10px"><label class="fl">Articolo / Ricambio *</label><input class="inp" id="nord-art" placeholder="Es: Schermo iPhone 15 Pro OLED originale"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px">
-        <div class="fg"><label class="fl">Quantita</label><input class="inp" id="nord-qty" type="number" min="1" value="1"></div>
-        <div class="fg"><label class="fl">Costo EUR</label><input class="inp" id="nord-costo" type="number" step="0.01" min="0" placeholder="0.00"></div>
-        <div class="fg"><label class="fl">Data prevista</label><input class="inp" id="nord-data" type="date"></div>
-      </div>
-      <div class="fg" style="margin-top:10px"><label class="fl">Note</label><textarea class="inp" id="nord-note" placeholder="Note aggiuntive..." style="min-height:70px"></textarea></div>
-      <div class="fg" style="margin-top:10px"><label class="fl">Stato</label>
-        <select class="inp" id="nord-stato">
-          <option>In attesa</option>
-          <option>Ordinato</option>
-          <option>Arrivato</option>
-          <option>Consegnato</option>
-          <option>Annullato</option>
-        </select>
-      </div>
-    </div>
-    <div class="modal-ft">
-      <button class="btn btn-g" onclick="chiudiM('modal-nord')">Annulla</button>
-      <button class="btn btn-p" onclick="salvaOrdine()">Salva Ordine</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL MODIFICA MAGAZZINO -->
-<div class="modal-bg" id="modal-em">
-  <div class="modal" style="width:500px">
-    <div class="modal-hd">
-      <div class="modal-t">Modifica Articolo</div>
-      <button class="modal-x" onclick="chiudiM('modal-em')">x</button>
-    </div>
-    <div class="modal-b">
-      <input type="hidden" id="em-idx">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="fg"><label class="fl">Codice</label><input class="inp" id="em-cod"></div>
-        <div class="fg"><label class="fl">Categoria</label>
-          <select class="inp" id="em-cat">
-            <option>Schermo</option><option>Batteria</option><option>Connettore</option>
-            <option>Fotocamera</option><option>Scocca</option><option>Scheda madre</option><option>Altro</option>
-          </select>
-        </div>
-      </div>
-      <div class="fg" style="margin-top:10px"><label class="fl">Descrizione *</label><input class="inp" id="em-desc"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
-        <div class="fg"><label class="fl">Quantita</label><input class="inp" id="em-qty" type="number" min="0"></div>
-        <div class="fg"><label class="fl">Scorta minima</label><input class="inp" id="em-min" type="number" min="0"></div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
-        <div class="fg"><label class="fl">P.Acquisto EUR</label><input class="inp" id="em-pac" type="number" step="0.01" min="0"></div>
-        <div class="fg"><label class="fl">P.Vendita EUR</label><input class="inp" id="em-pven" type="number" step="0.01" min="0"></div>
-      </div>
-    </div>
-    <div class="modal-ft">
-      <button class="btn btn-g" onclick="chiudiM('modal-em')">Annulla</button>
-      <button class="btn btn-p" onclick="salvaModMag()">Salva Modifiche</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL PREVENTIVO WHATSAPP -->
-<div class="modal-bg" id="modal-wa">
-  <div class="modal" style="width:560px">
-    <div class="modal-hd">
-      <div class="modal-t">&#128242; Invia Preventivo WhatsApp</div>
-      <button class="modal-x" onclick="chiudiM('modal-wa')">x</button>
-    </div>
-    <div class="modal-b">
-      <div class="fg">
-        <label class="fl">Numero WhatsApp Cliente</label>
-        <input class="inp" id="wa-tel" placeholder="Es: 3331234567">
-        <div style="font-size:11px;color:#555;margin-top:3px">Solo cifre, senza +39 o spazi</div>
-      </div>
-      <div class="fg" style="margin-top:12px">
-        <label class="fl">Messaggio Preventivo</label>
-        <textarea class="inp" id="wa-msg" style="min-height:180px;font-size:12px;line-height:1.6"></textarea>
-      </div>
-      <div style="background:#0d1f0d;border:1px solid #1a3a1a;border-radius:8px;padding:12px;margin-top:10px;font-size:12px;color:#888;line-height:1.7">
-        &#9432; Il cliente riceve il messaggio su WhatsApp e risponde <b style="color:#f0f0f0">ACCETTO</b> o <b style="color:#f0f0f0">RIFIUTO</b>.<br>
-        Aggiorna poi lo stato manualmente dalla scheda di modifica.
-      </div>
-    </div>
-    <div class="modal-ft">
-      <button class="btn btn-g" onclick="chiudiM('modal-wa')">Annulla</button>
-      <button class="btn btn-g" style="border-color:#25d366;color:#25d366" onclick="copiaMsg()">Copia Testo</button>
-      <button class="btn" style="background:#25d366;color:#000;font-weight:700" onclick="apriWA()">&#128242; Apri WhatsApp</button>
-    </div>
-  </div>
-</div>
-
 <script>
 
 // ============================================================
@@ -848,7 +725,6 @@ function vai(id, btn) {
   if (id === 'riparazioni') renderRip();
   if (id === 'clienti')     renderClienti();
   if (id === 'magazzino')   renderMag();
-  if (id === 'ordini')      renderOrdini();
   if (id === 'fatture')     renderFat();
   if (id === 'storico')     renderStorico();
   if (id === 'statistiche') renderStats();
@@ -868,7 +744,7 @@ function showToast(t, b) {
 
 function badgeHtml(s) {
   var cls = {
-    'In attesa': 'b-y', 'Preventivo inviato': 'b-y', 'In lavorazione': 'b-o',
+    'In attesa': 'b-y', 'In lavorazione': 'b-o',
     'Ricambio ordinato': 'b-o', 'Pronto': 'b-g', 'Consegnato': 'b-r'
   };
   return '<span class="badge ' + (cls[s] || 'b-y') + '">' + s + '</span>';
@@ -1108,6 +984,7 @@ document.addEventListener('click', function(e) {
 // ============================================================
 function mostraModaleR() {
   apriM('modal-r');
+  popolaSelectRicambi('nr');
   setTimeout(function() {
     initGriglia('new');
     resetGriglia('new');
@@ -1115,13 +992,69 @@ function mostraModaleR() {
   }, 50);
 }
 
+// ============================================================
+// RICAMBI DA MAGAZZINO (collegamento a scheda riparazione)
+// ============================================================
+function popolaSelectRicambi(prefix) {
+  var sel = document.getElementById(prefix + '-ricambio');
+  if (!sel) return;
+  var html = '<option value="">-- Nessun ricambio --</option>';
+  for (var i = 0; i < ML.length; i++) {
+    var m = ML[i];
+    if (m.qty <= 0) continue;
+    html += '<option value="' + i + '">' + m.desc + ' (' + m.cod + ') - disp. ' + m.qty + '</option>';
+  }
+  sel.innerHTML = html;
+  var info = document.getElementById(prefix + '-ricambio-info');
+  if (info) info.textContent = 'Seleziona un articolo';
+  var qty = document.getElementById(prefix + '-ricambio-qty');
+  if (qty) qty.value = 1;
+}
+
+function aggQtaMaxRicambio(prefix) {
+  var sel = document.getElementById(prefix + '-ricambio');
+  var info = document.getElementById(prefix + '-ricambio-info');
+  var qtyInp = document.getElementById(prefix + '-ricambio-qty');
+  if (sel.value === '') { info.textContent = 'Seleziona un articolo'; return; }
+  var m = ML[parseInt(sel.value)];
+  if (!m) return;
+  info.textContent = 'Disponibili: ' + m.qty;
+  qtyInp.max = m.qty;
+  if (parseInt(qtyInp.value) > m.qty) qtyInp.value = m.qty;
+}
+
+// Scala la quantita dal magazzino. Ritorna l'oggetto ricambio usato (per storicizzarlo nella scheda) o null.
+function scalaRicambio(prefix) {
+  var sel = document.getElementById(prefix + '-ricambio');
+  if (!sel || sel.value === '') return null;
+  var idx = parseInt(sel.value);
+  var m = ML[idx];
+  if (!m) return null;
+  var qtyReq = parseInt(document.getElementById(prefix + '-ricambio-qty').value) || 1;
+  if (qtyReq < 1) qtyReq = 1;
+  if (qtyReq > m.qty) qtyReq = m.qty;
+  m.qty = Math.max(0, m.qty - qtyReq);
+  return { cod: m.cod, desc: m.desc, qty: qtyReq };
+}
+
+function resetSelectRicambio(prefix) {
+  var sel = document.getElementById(prefix + '-ricambio');
+  if (sel) sel.value = '';
+  var qty = document.getElementById(prefix + '-ricambio-qty');
+  if (qty) qty.value = 1;
+  var info = document.getElementById(prefix + '-ricambio-info');
+  if (info) info.textContent = 'Seleziona un articolo';
+}
+
 function salvaRip() {
   var nome = document.getElementById('nr-nome').value.trim();
   var device = document.getElementById('nr-device').value.trim();
   if (!nome || !device) { alert('Inserisci almeno nome e dispositivo'); return; }
   RID++;
+  var ricambioUsato = scalaRicambio('nr');
   var obj = {
     id: RID,
+    categoria: document.getElementById('nr-categoria').value,
     nome: nome,
     tel: document.getElementById('nr-tel').value,
     email: document.getElementById('nr-email').value,
@@ -1139,7 +1072,7 @@ function salvaRip() {
     esito: document.getElementById('nr-esito').value,
     problema: document.getElementById('nr-problema').value,
     note: document.getElementById('nr-note').value,
-    ticketRisposta: document.getElementById('nr-ticket-risposta') ? document.getElementById('nr-ticket-risposta').value : '',
+    ricambi: ricambioUsato ? [ricambioUsato] : [],
     data: new Date().toLocaleDateString('it-IT')
   };
   RL.unshift(obj);
@@ -1148,15 +1081,19 @@ function salvaRip() {
   renderRip();
   renderDash();
   renderNotif();
+  renderMag();
   // reset form
   var ids = ['nr-nome','nr-tel','nr-email','nr-device','nr-imei','nr-costo','nr-pin','nr-problema','nr-note','nr-consegna','nr-datric'];
-  var el = document.getElementById('nr-ticket-risposta'); if (el) el.value = '';
   for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = '';
   document.getElementById('nr-stato').value = 'In attesa';
   document.getElementById('nr-esito').value = '';
+  document.getElementById('nr-categoria').value = 'Smartphone';
+  resetSelectRicambio('nr');
   resetGriglia('new');
   caricaEst('nr', '8');
-  showToast('Scheda #' + RID + ' salvata!', 'Per ' + nome + ' - ' + device);
+  var msg = 'Per ' + nome + ' - ' + device;
+  if (ricambioUsato) msg += ' | Scalato: ' + ricambioUsato.desc + ' x' + ricambioUsato.qty;
+  showToast('Scheda #' + RID + ' salvata!', msg);
 }
 
 // ============================================================
@@ -1184,24 +1121,23 @@ function renderRip(lista) {
   for (var i = 0; i < data.length; i++) {
     var r = data[i];
     var opts = '';
-    var stati = ['In attesa','Preventivo inviato','In lavorazione','Ricambio ordinato','Pronto','Consegnato'];
+    var stati = ['In attesa','In lavorazione','Ricambio ordinato','Pronto','Consegnato'];
     for (var j = 0; j < stati.length; j++) {
       opts += '<option' + (r.stato === stati[j] ? ' selected' : '') + '>' + stati[j] + '</option>';
     }
     html += '<tr>'
       + '<td><b style="font-family:monospace;color:#ff5500">#' + r.id + '</b></td>'
-      + '<td><b>' + r.nome + '</b><br><small style="color:#555">' + (r.tel || '') + '</small>'        + (r.ticketRisposta ? '<br><span style="display:inline-block;margin-top:3px;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;'          + (r.ticketRisposta==='accettato' ? 'background:#d1fae5;color:#065f46' : r.ticketRisposta==='rifiutato' ? 'background:#fee2e2;color:#991b1b' : 'background:#fef3c7;color:#92400e')          + '">' + (r.ticketRisposta==='accettato' ? '✅ Accettato' : r.ticketRisposta==='rifiutato' ? '❌ Rifiutato' : '📤 Inviato') + '</span>' : '')        + (r.stato==='Preventivo inviato' && !r.ticketRisposta ? '<br><span style="display:inline-block;margin-top:3px;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;background:#fef3c7;color:#92400e">📤 Inviato</span>' : '')      + '</td>'
+      + '<td><b>' + r.nome + '</b><br><small style="color:#555">' + (r.tel || '') + '</small></td>'
       + '<td>' + r.device + '</td>'
       + '<td><span style="font-size:11px;color:#888">' + (r.tipo || '-') + '</span></td>'
       + '<td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (r.problema || '-') + '</td>'
       + '<td>' + (r.costo ? 'EUR ' + parseFloat(r.costo).toFixed(2) : '-') + '</td>'
       + '<td>' + badgeHtml(r.stato) + '</td>'
-      + '<td>' + scadHtml(r.consegna, r.stato) + '</td>'
+      + '<td>' + scadHtml(r.consegna, r.stato) + (r.dataConsegnato ? '<br><small style="color:#40d080">&#10003; ' + r.dataConsegnato + '</small>' : '') + '</td>'
       + '<td style="white-space:nowrap">'
         + '<select class="inp btn-sm" style="width:145px;margin-bottom:4px" onchange="cambiaStato(' + r.id + ',this.value)">' + opts + '</select><br>'
         + '<button class="btn btn-g btn-sm" style="border-color:#4080ff;color:#4080ff;margin-right:3px" onclick="apriScheda(' + r.id + ')">Scheda</button>'
         + '<button class="btn btn-g btn-sm" style="border-color:#ff8800;color:#ff8800;margin-right:3px" onclick="apriModifica(' + r.id + ')">Modif.</button>'
-        + '<button class="btn btn-g btn-sm" style="border-color:#25d366;color:#25d366;margin-right:3px" onclick="inviaPreventivo(' + r.id + ')" title="Invia preventivo WhatsApp">&#128242; WA</button>'
         + '<button class="btn btn-d btn-sm" onclick="eliminaRip(' + r.id + ')">X</button>'
       + '</td></tr>';
   }
@@ -1217,6 +1153,12 @@ function cambiaStato(id, val) {
   if (!r) return;
   var old = r.stato;
   r.stato = val;
+  if (val === 'Consegnato' && old !== 'Consegnato') {
+    r.dataConsegnato = new Date().toLocaleDateString('it-IT');
+  }
+  if (val !== 'Consegnato' && old === 'Consegnato') {
+    r.dataConsegnato = null;
+  }
   salva();
   renderRip();
   renderDash();
@@ -1243,6 +1185,7 @@ function apriModifica(id) {
   for (var i = 0; i < RL.length; i++) { if (RL[i].id === id) { r = RL[i]; break; } }
   if (!r) return;
   document.getElementById('e-id').value = r.id;
+  document.getElementById('e-categoria').value = r.categoria || 'Smartphone';
   document.getElementById('e-nome').value = r.nome || '';
   document.getElementById('e-tel').value = r.tel || '';
   document.getElementById('e-email').value = r.email || '';
@@ -1258,7 +1201,18 @@ function apriModifica(id) {
   document.getElementById('e-datric').value = r.datric || '';
   document.getElementById('e-problema').value = r.problema || '';
   document.getElementById('e-note').value = r.note || '';
-  document.getElementById('e-ticket-risposta').value = r.ticketRisposta || '';
+  popolaSelectRicambi('e');
+  resetSelectRicambio('e');
+  var ricInfo = document.getElementById('e-ricambi-usati');
+  if (r.ricambi && r.ricambi.length) {
+    var rh = '';
+    for (var j = 0; j < r.ricambi.length; j++) {
+      rh += '<div>- ' + r.ricambi[j].desc + ' (' + r.ricambi[j].cod + ') x' + r.ricambi[j].qty + '</div>';
+    }
+    ricInfo.innerHTML = rh;
+  } else {
+    ricInfo.innerHTML = 'Nessun ricambio registrato';
+  }
   caricaGriglia('edit', r.schema || '');
   setTimeout(function() { caricaEst('e', r.estetica || '8'); }, 30);
   apriM('modal-e');
@@ -1274,6 +1228,7 @@ function aggiornaRip() {
   var device = document.getElementById('e-device').value.trim();
   if (!nome || !device) { alert('Inserisci almeno nome e dispositivo'); return; }
   var old = r.stato;
+  r.categoria = document.getElementById('e-categoria').value;
   r.nome = nome;
   r.tel = document.getElementById('e-tel').value;
   r.email = document.getElementById('e-email').value;
@@ -1286,19 +1241,33 @@ function aggiornaRip() {
   r.accessori = document.getElementById('e-accessori').value;
   r.estetica = document.getElementById('e-estetica').value;
   r.consegna = document.getElementById('e-consegna').value;
+  var vecchioStato = r.stato;
   r.stato = document.getElementById('e-stato').value;
+  if (r.stato === 'Consegnato' && vecchioStato !== 'Consegnato') {
+    r.dataConsegnato = new Date().toLocaleDateString('it-IT');
+  }
+  if (r.stato !== 'Consegnato' && vecchioStato === 'Consegnato') {
+    r.dataConsegnato = null;
+  }
   r.esito = document.getElementById('e-esito').value;
   r.datric = document.getElementById('e-datric').value;
   r.problema = document.getElementById('e-problema').value;
   r.note = document.getElementById('e-note').value;
-  r.ticketRisposta = document.getElementById('e-ticket-risposta').value;
+  var ricambioUsato = scalaRicambio('e');
+  if (ricambioUsato) {
+    if (!r.ricambi) r.ricambi = [];
+    r.ricambi.push(ricambioUsato);
+  }
   salva();
   chiudiM('modal-e');
   renderRip();
   renderDash();
   renderNotif();
+  renderMag();
+  var msg = nome + ' - ' + device;
+  if (ricambioUsato) msg += ' | Scalato: ' + ricambioUsato.desc + ' x' + ricambioUsato.qty;
   if (r.stato === 'Pronto' && old !== 'Pronto') showToast('Pronto!', r.device + ' di ' + r.nome + ' e pronto!');
-  else showToast('Scheda #' + id + ' aggiornata!', nome + ' - ' + device);
+  else showToast('Scheda #' + id + ' aggiornata!', msg);
 }
 
 // ============================================================
@@ -1329,9 +1298,7 @@ function box(lbl, val) {
     + '<div style="font-weight:600;font-size:13px">' + (val || '-') + '</div></div>';
 }
 
-var scedaAttivaId = null;
 function apriScheda(id) {
-  scedaAttivaId = id;
   var r = null;
   for (var i = 0; i < RL.length; i++) { if (RL[i].id === id) { r = RL[i]; break; } }
   if (!r) return;
@@ -1360,15 +1327,19 @@ function apriScheda(id) {
         + '<div style="font-size:20px;font-weight:800;color:#ff5500">SCHEDA #' + r.id + '</div>'
         + '<div style="font-size:12px;color:#999">' + r.data + '</div>'
         + (r.consegna ? '<div style="font-size:12px;color:#ff5500;font-weight:600">Consegna: ' + r.consegna + '</div>' : '')
+        + (r.dataConsegnato ? '<div style="font-size:12px;font-weight:700;color:#22c55e">&#10003; Consegnato il: ' + r.dataConsegnato + '</div>' : '')
       + '</div>'
     + '</div>'
-    + (r.ticketRisposta || r.stato==='Preventivo inviato' ? '<div style="margin-bottom:10px;display:flex;align-items:center;gap:8px">'      + '<span style="font-size:11px;color:#999">Preventivo WhatsApp:</span>'      + '<span style="padding:3px 12px;border-radius:20px;font-size:12px;font-weight:700;'      + (r.ticketRisposta==='accettato' ? 'background:#d1fae5;color:#065f46' : r.ticketRisposta==='rifiutato' ? 'background:#fee2e2;color:#991b1b' : 'background:#fef3c7;color:#92400e')      + '">'      + (r.ticketRisposta==='accettato' ? '✅ Preventivo Accettato' : r.ticketRisposta==='rifiutato' ? '❌ Preventivo Rifiutato' : '📤 Preventivo Inviato')      + '</span></div>' : '')    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:10px">'      + box('Cliente', r.nome) + box('Telefono', r.tel) + box('Email', r.email)
+    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:10px">'
+      + box('Cliente', r.nome) + box('Telefono', r.tel) + box('Email', r.email)
     + '</div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:10px">'
-      + box('Dispositivo', r.device) + box('IMEI', r.imei) + box('Tipo Intervento', r.tipo)
+      + box('Categoria', r.categoria || '-') + box('Dispositivo', r.device) + box('IMEI', r.imei)
     + '</div>'
-    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:12px">'
-      + box('Condizione Estetica', r.estetica) + box('Accessori', r.accessori)
+    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:10px">'
+      + box('Tipo Intervento', r.tipo) + box('Condizione Estetica', r.estetica) + box('Accessori', r.accessori)
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:1fr;gap:9px;margin-bottom:12px">'
       + '<div style="background:#fff8f5;padding:9px;border-radius:7px;border:1px solid #ffddcc">'
         + '<div style="font-size:9px;color:#ff5500;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Preventivo</div>'
         + '<div style="font-weight:700;font-size:16px;color:#ff5500">' + (r.costo ? 'EUR ' + parseFloat(r.costo).toFixed(2) : 'Da definire') + '</div>'
@@ -1376,6 +1347,7 @@ function apriScheda(id) {
     + '</div>'
     + sbl
     + '<div style="margin-bottom:10px"><div style="font-size:10px;text-transform:uppercase;color:#ff5500;letter-spacing:1px;margin-bottom:5px;font-weight:600">Problema Segnalato</div><div style="background:#fff8f5;border:1px solid #ffddcc;padding:10px;border-radius:7px;font-size:13px">' + (r.problema || '-') + '</div></div>'
+    + (r.ricambi && r.ricambi.length ? '<div style="margin-bottom:10px"><div style="font-size:10px;text-transform:uppercase;color:#999;letter-spacing:1px;margin-bottom:5px;font-weight:600">Ricambi Utilizzati</div><div style="background:#f9f9f9;border:1px solid #eee;padding:10px;border-radius:7px;font-size:13px;color:#555">' + r.ricambi.map(function(rc){ return rc.desc + ' (' + rc.cod + ') x' + rc.qty; }).join('<br>') + '</div></div>' : '')
     + (r.note ? '<div style="margin-bottom:10px"><div style="font-size:10px;text-transform:uppercase;color:#999;letter-spacing:1px;margin-bottom:5px;font-weight:600">Note Tecniche</div><div style="background:#f9f9f9;border:1px solid #eee;padding:10px;border-radius:7px;font-size:13px;color:#555">' + r.note + '</div></div>' : '')
     + '<div style="margin-top:12px;padding-top:10px;border-top:2px solid #eee">'
       + '<div style="font-size:10px;text-transform:uppercase;color:#ff5500;letter-spacing:1px;margin-bottom:7px;font-weight:600">Condizioni del Servizio</div>'
@@ -1409,121 +1381,6 @@ function stampaScheda() {
   win.document.close();
 }
 
-function stampaPOS() {
-  // Recupera i dati della riparazione corrente
-  var el = document.getElementById('scheda-body');
-  if (!el) return;
-  // Estrai dati dall'HTML della scheda corrente leggendo i campi
-  var r = RL.find(function(x){ return x.id === scedaAttivaId; });
-  if (!r) {
-    // fallback: stampa versione testo semplice dall'HTML
-    _stampaPOSraw();
-    return;
-  }
-  var costo = r.costo ? 'EUR ' + parseFloat(r.costo).toFixed(2) : 'Da definire';
-  var data  = new Date().toLocaleDateString('it-IT');
-  var ora   = new Date().toLocaleTimeString('it-IT', {hour:'2-digit',minute:'2-digit'});
-
-  // Genera HTML ottimizzato per carta termica 80mm
-  var w = '<style>';
-  w += '* { box-sizing: border-box; margin: 0; padding: 0; }';
-  w += 'body { font-family: "Courier New", Courier, monospace; font-size: 12px; width: 72mm; background: white; color: #000; }';
-  w += '@page { margin: 3mm; size: 80mm auto; }';
-  w += '.centro { text-align: center; }';
-  w += '.bold { font-weight: bold; }';
-  w += '.grande { font-size: 15px; font-weight: bold; }';
-  w += '.sep { border-top: 1px dashed #000; margin: 4px 0; }';
-  w += '.sep2 { border-top: 2px solid #000; margin: 4px 0; }';
-  w += '.riga { display: flex; justify-content: space-between; margin: 2px 0; }';
-  w += '.label { color: #555; font-size: 10px; text-transform: uppercase; }';
-  w += '.val { font-weight: bold; }';
-  w += '.grande-costo { font-size: 20px; font-weight: 900; text-align: center; margin: 6px 0; letter-spacing: 2px; }';
-  w += '.firma { margin-top: 6px; border-top: 1px solid #000; padding-top: 4px; font-size: 10px; height: 22mm; }';
-  w += '</style>';
-
-  var h = '';
-  // Header negozio
-  h += '<div class="centro grande">' + SET.nome + '</div>';
-  if (SET.slogan) h += '<div class="centro" style="font-size:10px">' + SET.slogan + '</div>';
-  if (SET.ind)    h += '<div class="centro" style="font-size:10px">' + SET.ind + '</div>';
-  if (SET.tel)    h += '<div class="centro" style="font-size:10px">Tel: ' + SET.tel + '</div>';
-  h += '<div class="sep2"></div>';
-
-  // Intestazione scheda
-  h += '<div class="riga"><span class="bold">SCHEDA #' + String(r.id).padStart(4,'0') + '</span><span>' + data + ' ' + ora + '</span></div>';
-  h += '<div class="sep"></div>';
-
-  // Cliente
-  h += '<div class="label">Cliente</div>';
-  h += '<div class="bold" style="font-size:13px">' + (r.nome || '-') + '</div>';
-  if (r.tel)   h += '<div>Tel: ' + r.tel + '</div>';
-  if (r.email) h += '<div>' + r.email + '</div>';
-  h += '<div class="sep"></div>';
-
-  // Dispositivo
-  h += '<div class="label">Dispositivo</div>';
-  h += '<div class="bold">' + (r.device || '-') + '</div>';
-  if (r.imei) h += '<div style="font-size:10px">IMEI: ' + r.imei + '</div>';
-  if (r.tipo) h += '<div>Intervento: ' + r.tipo + '</div>';
-  h += '<div class="sep"></div>';
-
-  // Problema
-  h += '<div class="label">Problema segnalato</div>';
-  h += '<div style="font-size:11px;word-break:break-word">' + (r.problema || '-') + '</div>';
-
-  // PIN se presente
-  if (r.pin) {
-    h += '<div class="sep"></div>';
-    h += '<div class="label">PIN</div>';
-    h += '<div class="bold" style="font-size:16px;letter-spacing:6px">' + r.pin + '</div>';
-  }
-
-  // Preventivo
-  h += '<div class="sep2"></div>';
-  h += '<div class="label centro">Preventivo</div>';
-  h += '<div class="grande-costo">' + costo + '</div>';
-  if (r.consegna) h += '<div class="centro" style="font-size:11px">Consegna prevista: ' + r.consegna + '</div>';
-  h += '<div class="sep2"></div>';
-
-  // Note
-  if (r.note) {
-    h += '<div class="label">Note tecnico</div>';
-    h += '<div style="font-size:11px;word-break:break-word">' + r.note + '</div>';
-    h += '<div class="sep"></div>';
-  }
-
-  // Condizioni sintetiche
-  h += '<div style="font-size:9px;line-height:1.5">';
-  h += 'Garanzia 90gg stesso difetto. Dispositivi non ritirati dopo 30gg: costi custodia. ';
-  h += 'Riparazioni &lt;EUR 30 procedono senza preventivo aggiuntivo.';
-  h += '</div>';
-  h += '<div class="sep"></div>';
-
-  // Firma
-  h += '<div class="firma">Firma Cliente:<br><br><br></div>';
-  h += '<div class="firma">Firma Tecnico:<br><br><br></div>';
-
-  // Footer
-  h += '<div class="sep"></div>';
-  h += '<div class="centro" style="font-size:9px">' + SET.nome;
-  if (SET.piva) h += ' - P.IVA ' + SET.piva;
-  h += '</div>';
-  h += '<div class="centro" style="font-size:9px">Grazie e arrivederci!</div>';
-  h += '<br><br>';
-
-  var win = window.open('', '_blank', 'width=320,height=700');
-  if (!win) return;
-  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Scontrino POS</title>' + w + '</head><body>' + h);
-  win.document.write('<scri' + 'pt>window.onload=function(){window.print();setTimeout(function(){window.close();},800);};</' + 'scri' + 'pt>');
-  win.document.write('</body></html>');
-  win.document.close();
-}
-
-function _stampaPOSraw() {
-  // Fallback se scedaAttivaId non disponibile
-  alert('Apri prima la scheda di una riparazione specifica.');
-}
-
 // ============================================================
 // CLIENTI
 // ============================================================
@@ -1549,8 +1406,10 @@ function getClienti() {
 function renderClienti() {
   var q = (document.getElementById('cl-q') || {}).value || '';
   var ql = q.toLowerCase();
+  var catFiltro = (document.getElementById('cl-cat') || {}).value || '';
   var list = getClienti();
   if (q) list = list.filter(function(c) { return c.nome.toLowerCase().indexOf(ql) !== -1 || c.tel.indexOf(q) !== -1; });
+  if (catFiltro) list = list.filter(function(c) { return c.rips.some(function(r) { return r.categoria === catFiltro; }); });
   _clList = list;
   var tb = document.getElementById('cl-tb');
   if (!list.length) {
@@ -1590,7 +1449,7 @@ function apriCliente(idx) {
     var r = rips[i];
     var ec = r.esito === 'Riparato' ? '#40d080' : r.esito === 'Irriparabile' ? '#ff4444' : r.esito ? '#ff8800' : '#aaa';
     html += '<div style="background:#1a1a1a;border:1px solid #222;border-radius:10px;padding:13px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px">'
-      + '<div style="flex:1"><div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><b style="font-family:monospace;color:#ff5500">#' + r.id + '</b><b>' + r.device + '</b>' + badgeHtml(r.stato) + '</div>'
+      + '<div style="flex:1"><div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><b style="font-family:monospace;color:#ff5500">#' + r.id + '</b><b>' + r.device + '</b>' + (r.categoria ? '<span class="badge" style="background:#222;color:#4080ff;border:1px solid #2a3a55">' + r.categoria + '</span>' : '') + badgeHtml(r.stato) + '</div>'
       + '<div style="font-size:12px;color:#888">' + (r.problema || '-') + '</div>'
       + '<div style="font-size:11px;color:#555;margin-top:3px;font-family:monospace">' + r.data + (r.consegna ? ' > ' + r.consegna : '') + '</div></div>'
       + '<div style="text-align:right;flex-shrink:0">'
@@ -1727,7 +1586,7 @@ function renderDash() {
   }
 
   // Chart
-  var stati = ['In attesa','Preventivo inviato','In lavorazione','Ricambio ordinato','Pronto','Consegnato'];
+  var stati = ['In attesa','In lavorazione','Ricambio ordinato','Pronto','Consegnato'];
   var counts = [0,0,0,0,0];
   for (var i = 0; i < RL.length; i++) {
     var idx = stati.indexOf(RL[i].stato);
@@ -1782,58 +1641,19 @@ function renderMag() {
     ? '<div class="alert alert-w"><b>' + sc.length + ' articolo/i</b> sotto scorta minima</div>' : '';
   var tb = document.getElementById('mag-tb');
   if (!ML.length) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:36px;color:#555">Magazzino vuoto</td></tr>'; return; }
-
-  var q = document.getElementById('mag-search') ? document.getElementById('mag-search').value.toLowerCase().trim() : '';
-  var cat = document.getElementById('mag-filter-cat') ? document.getElementById('mag-filter-cat').value : '';
-  var disp = document.getElementById('mag-filter-disp') ? document.getElementById('mag-filter-disp').value : '';
-
-  var filtered = [];
+  var html = '';
   for (var i = 0; i < ML.length; i++) {
     var m = ML[i];
-    if (q && (m.desc.toLowerCase().indexOf(q) === -1 && (m.cod||'').toLowerCase().indexOf(q) === -1 && (m.cat||'').toLowerCase().indexOf(q) === -1)) continue;
-    if (cat && m.cat !== cat) continue;
-    if (disp === 'disp' && m.qty <= 0) continue;
-    if (disp === 'esau' && m.qty > 0) continue;
-    if (disp === 'bassa' && m.qty > m.min) continue;
-    filtered.push({ m: m, i: i });
-  }
-
-  var infoEl = document.getElementById('mag-search-info');
-  if (infoEl) {
-    if (q || cat || disp) {
-      infoEl.innerHTML = '&#128269; ' + filtered.length + ' risultat' + (filtered.length===1?'o':'i') + ' su ' + ML.length + ' articoli';
-    } else {
-      var dispCount = ML.filter(function(x){return x.qty>x.min;}).length;
-      infoEl.innerHTML = ML.length + ' articoli totali &nbsp;&bull;&nbsp; <b style="color:#40d080">' + dispCount + ' disponibili</b> &nbsp;&bull;&nbsp; <b style="color:#ff2200">' + sc.length + ' sotto scorta</b>';
-    }
-  }
-
-  if (!filtered.length) {
-    tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:36px;color:#555">Nessun risultato' + (q ? ' per &quot;' + q + '&quot;' : '') + '</td></tr>';
-    return;
-  }
-
-  var html = '';
-  for (var j = 0; j < filtered.length; j++) {
-    var m = filtered[j].m;
-    var i = filtered[j].i;
-    var esaurito = m.qty === 0;
-    var bassa = m.qty > 0 && m.qty <= m.min;
-    var qColor = esaurito ? '#ff2200' : bassa ? '#ff8800' : '#40d080';
-    var qBadge = esaurito ? m.qty + ' <span style="font-size:10px;background:#330000;color:#ff4444;padding:1px 5px;border-radius:8px">ESAURITO</span>'
-               : bassa    ? m.qty + ' <span style="font-size:10px;background:#332200;color:#ff8800;padding:1px 5px;border-radius:8px">BASSA</span>'
-               : m.qty;
-    html += '<tr style="' + (esaurito ? 'opacity:0.55' : '') + '">'
-      + '<td><code style="color:#ff8800">' + (m.cod||'-') + '</code></td>'
+    html += '<tr>'
+      + '<td><code style="color:#ff8800">' + m.cod + '</code></td>'
       + '<td><b>' + m.desc + '</b></td>'
-      + '<td><span style="font-size:11px;background:#1a1a1a;padding:2px 7px;border-radius:10px">' + m.cat + '</span></td>'
-      + '<td><b style="color:' + qColor + '">' + qBadge + '</b></td>'
-      + '<td>EUR ' + (m.pac||0).toFixed(2) + '</td>'
-      + '<td><b>EUR ' + (m.pven||0).toFixed(2) + '</b></td>'
+      + '<td>' + m.cat + '</td>'
+      + '<td><b style="color:' + (m.qty <= m.min ? '#ff2200' : '#40d080') + '">' + m.qty + '</b>' + (m.qty <= m.min ? ' !' : '') + '</td>'
+      + '<td>EUR ' + m.pac.toFixed(2) + '</td>'
+      + '<td>EUR ' + m.pven.toFixed(2) + '</td>'
       + '<td style="white-space:nowrap">'
         + '<button class="btn btn-g btn-sm" style="border-color:#40d080;color:#40d080;margin-right:3px" data-mi="' + i + '" onclick="adjQta(+this.dataset.mi,1)">+</button>'
         + '<button class="btn btn-g btn-sm" style="margin-right:3px" data-mi="' + i + '" onclick="adjQta(+this.dataset.mi,-1)">-</button>'
-        + '<button class="btn btn-g btn-sm" style="border-color:#ff8800;color:#ff8800;margin-right:3px" data-mi="' + i + '" onclick="apriModMag(+this.dataset.mi)">Modif.</button>'
         + '<button class="btn btn-d btn-sm" data-mi="' + i + '" onclick="elimMag(+this.dataset.mi)">X</button>'
       + '</td></tr>';
   }
@@ -1842,36 +1662,6 @@ function renderMag() {
 
 function adjQta(i, d) { ML[i].qty = Math.max(0, ML[i].qty + d); salva(); renderMag(); }
 function elimMag(i) { if (!confirm('Eliminare?')) return; ML.splice(i, 1); salva(); renderMag(); }
-
-function apriModMag(i) {
-  var m = ML[i];
-  document.getElementById('em-idx').value = i;
-  document.getElementById('em-cod').value = m.cod || '';
-  document.getElementById('em-cat').value = m.cat || 'Schermo';
-  document.getElementById('em-desc').value = m.desc || '';
-  document.getElementById('em-qty').value = m.qty || 0;
-  document.getElementById('em-min').value = m.min || 0;
-  document.getElementById('em-pac').value = m.pac || 0;
-  document.getElementById('em-pven').value = m.pven || 0;
-  apriM('modal-em');
-}
-
-function salvaModMag() {
-  var i = parseInt(document.getElementById('em-idx').value);
-  var desc = document.getElementById('em-desc').value.trim();
-  if (!desc) { alert('Inserisci la descrizione'); return; }
-  ML[i].cod  = document.getElementById('em-cod').value.trim();
-  ML[i].cat  = document.getElementById('em-cat').value;
-  ML[i].desc = desc;
-  ML[i].qty  = parseInt(document.getElementById('em-qty').value) || 0;
-  ML[i].min  = parseInt(document.getElementById('em-min').value) || 0;
-  ML[i].pac  = parseFloat(document.getElementById('em-pac').value) || 0;
-  ML[i].pven = parseFloat(document.getElementById('em-pven').value) || 0;
-  salva();
-  chiudiM('modal-em');
-  renderMag();
-  toast('Aggiornato', ML[i].desc);
-}
 
 // ============================================================
 // FATTURE
@@ -2011,7 +1801,7 @@ function renderStats() {
     + '<div class="stat g"><div class="stat-l">Fatturato</div><div class="stat-v" style="font-size:20px">EUR ' + totFat.toFixed(0) + '</div></div>'
     + '<div class="stat o"><div class="stat-l">Valore Medio</div><div class="stat-v" style="font-size:20px">EUR ' + media.toFixed(0) + '</div></div>';
 
-  var stati = ['In attesa','Preventivo inviato','In lavorazione','Ricambio ordinato','Pronto','Consegnato'];
+  var stati = ['In attesa','In lavorazione','Ricambio ordinato','Pronto','Consegnato'];
   var counts = [0,0,0,0,0];
   for (var i = 0; i < RL.length; i++) {
     var idx = stati.indexOf(RL[i].stato);
@@ -2086,166 +1876,9 @@ function salvaSett() {
   SET.email = document.getElementById('set-email').value;
   SET.piva = document.getElementById('set-piva').value;
   localStorage.setItem('rp_set', JSON.stringify(SET));
-  toast('Salvato', 'Impostazioni aggiornate');
+  aggiornaSidebar();
+  showToast('Salvato!', '');
 }
-
-// ============================================================
-// WHATSAPP PREVENTIVO + PAGINA TICKET
-// ============================================================
-var waRipId = null;
-var currentTicketKey = null;
-
-function inviaPreventivo(id) {
-  var r = RL.find(function(x){ return x.id === id; });
-  if (!r) return;
-  waRipId = id;
-  var nome = r.nome || 'Cliente';
-  var device = r.device || '';
-  var costo = r.costo ? parseFloat(r.costo).toFixed(2) : '0.00';
-  var centro = SET.nome || 'il nostro centro';
-  var idR = '#R' + String(r.id).padStart(3,'0');
-  var msg = '\uD83D\uDD27 *Preventivo Riparazione*\n\n';
-  msg += 'Ciao *' + nome + '*!\n';
-  msg += 'Il preventivo per la riparazione del tuo *' + device + '* \u00e8 pronto.\n\n';
-  if (r.tipo) msg += '\uD83D\uDD27 Intervento: ' + r.tipo + '\n';
-  if (r.problema) msg += '\uD83D\uDCCB Problema: ' + r.problema + '\n';
-  msg += '\n\uD83D\uDCB0 *Totale: \u20ac ' + costo + '*\n\n';
-  msg += '---\n';
-  msg += 'Rispondi *ACCETTO* per procedere con la riparazione\n';
-  msg += 'Rispondi *RIFIUTO* per annullare\n\n';
-  msg += 'Grazie, ' + centro;
-  document.getElementById('wa-msg').value = msg;
-  document.getElementById('wa-tel').value = (r.tel || '').replace(/[^0-9]/g, '');
-  apriM('modal-wa');
-}
-
-function apriWA() {
-  var tel = document.getElementById('wa-tel').value.replace(/[^0-9]/g, '');
-  var msg = document.getElementById('wa-msg').value;
-  if (!tel) { alert('Inserisci il numero WhatsApp del cliente'); return; }
-  var url = 'https://wa.me/39' + tel + '?text=' + encodeURIComponent(msg);
-  window.open(url, '_blank');
-  var r = RL.find(function(x){ return x.id === waRipId; });
-  if (r) {
-    r.stato = 'Preventivo inviato';
-    salva(); renderRip(); renderDash();
-    toast('Inviato!', 'Stato aggiornato a Preventivo inviato');
-  }
-  chiudiM('modal-wa');
-}
-
-function copiaLink() {
-  var link = document.getElementById('wa-link').value;
-  navigator.clipboard.writeText(link).then(function(){ toast('Copiato!', 'Link copiato'); });
-}
-
-function copiaMsg() {
-  var msg = document.getElementById('wa-msg').value;
-  navigator.clipboard.writeText(msg).then(function(){ toast('Copiato!', 'Messaggio copiato'); });
-}
-
-// ============================================================
-// PAGINA TICKET PUBBLICA
-// ============================================================
-function checkTicketMode() {
-  var params = new URLSearchParams(window.location.search);
-  var key = params.get('ticket');
-  if (!key) return;
-  // Nascondi app, mostra ticket
-  document.getElementById('app-root').style.display = 'none';
-  currentTicketKey = key;
-  var t;
-  try {
-    t = JSON.parse(decodeURIComponent(escape(atob(key))));
-  } catch(e) {
-    document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f5f5f5"><div style="text-align:center;padding:40px"><div style="font-size:48px">&#10060;</div><div style="font-size:20px;margin-top:16px;color:#333">Link non valido</div></div></div>';
-    return;
-  }
-  if (!t) {
-    document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f5f5f5"><div style="text-align:center;padding:40px"><div style="font-size:48px">&#10060;</div><div style="font-size:20px;margin-top:16px;color:#333">Ticket non trovato</div></div></div>';
-    return;
-  }
-  var r = t.rip;
-  var set = t.set || {};
-  var ticketEl = document.getElementById('ticket-page');
-  ticketEl.style.display = 'block';
-  // Controlla se già risposto
-  var risposto = r.ticketRisposta || '';
-  var costo = r.costo ? parseFloat(r.costo).toFixed(2) : '0.00';
-  var statoColor = risposto === 'accettato' ? '#22c55e' : risposto === 'rifiutato' ? '#ef4444' : '#f59e0b';
-  var statoTxt = risposto === 'accettato' ? 'Preventivo Accettato' : risposto === 'rifiutato' ? 'Preventivo Rifiutato' : 'Preventivo da Approvare';
-  var html = '<div style="min-height:100vh;background:#f0f4f8;font-family:-apple-system,BlinkMacSystemFont,sans-serif;padding:0 0 60px">';
-  // Header
-  html += '<div style="background:#fff;padding:20px 20px 16px;border-bottom:1px solid #e5e7eb">';
-  html += '<div style="font-size:13px;color:#6b7280;margin-bottom:4px">' + (set.nome || 'RepairPro') + '</div>';
-  html += '<div style="font-size:22px;font-weight:700;color:#111">' + statoTxt + '</div>';
-  html += '<div style="font-size:12px;color:#9ca3af;margin-top:4px">Ultimo aggiornamento: ' + new Date(t.ts).toLocaleDateString('it-IT', {day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}) + '</div>';
-  html += '</div>';
-  var cards = '<div style="padding:16px;display:flex;flex-direction:column;gap:12px">';
-  // Stato badge
-  if (risposto) {
-    var ic = risposto === 'accettato' ? '\u2705' : '\u274c';
-    cards += '<div style="background:' + (risposto==='accettato'?'#f0fdf4':'#fef2f2') + ';border:1.5px solid ' + statoColor + ';border-radius:12px;padding:16px;display:flex;align-items:center;gap:12px">';
-    cards += '<div style="font-size:28px">' + ic + '</div>';
-    cards += '<div><div style="font-weight:700;color:' + statoColor + '">' + statoTxt + '</div><div style="font-size:13px;color:#6b7280;margin-top:2px">' + (risposto==='accettato'?'Procederemo con la riparazione al pi\u00f9 presto.':'La riparazione \u00e8 stata annullata.') + '</div></div>';
-    cards += '</div>';
-  }
-  // Dispositivo
-  cards += '<div style="background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.07)">';
-  cards += '<div style="font-size:11px;font-weight:600;color:#6b7280;letter-spacing:.08em;margin-bottom:8px">DISPOSITIVO</div>';
-  cards += '<div style="display:flex;justify-content:space-between;align-items:flex-start">';
-  cards += '<div><div style="font-size:18px;font-weight:700;color:#111">' + (r.device||'') + '</div>';
-  if (r.imei) cards += '<div style="font-size:13px;color:#6b7280;margin-top:2px">IMEI: ' + r.imei + '</div>';
-  cards += '</div>';
-  cards += '</div>';
-  if (r.problema) cards += '<div style="font-size:13px;color:#374151;margin-top:10px"><b>Problema:</b> ' + r.problema + '</div>';
-  cards += '</div>';
-  // Preventivo
-  cards += '<div style="background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.07)">';
-  cards += '<div style="font-size:11px;font-weight:600;color:#6b7280;letter-spacing:.08em;margin-bottom:10px">&#128221; PREVENTIVO DA APPROVARE</div>';
-  if (r.tipo) cards += '<div style="font-size:13px;color:#374151;margin-bottom:6px"><b>Intervento:</b> ' + r.tipo + '</div>';
-  if (r.note) cards += '<div style="font-size:13px;color:#374151;margin-bottom:12px"><b>Note:</b> ' + r.note + '</div>';
-  cards += '<div style="background:#f9fafb;border-radius:8px;padding:14px;display:flex;justify-content:space-between;align-items:center">';
-  cards += '<div style="font-size:14px;color:#6b7280">Totale</div>';
-  cards += '<div style="font-size:26px;font-weight:800;color:#111">\u20ac ' + costo + '</div>';
-  cards += '</div>';
-  // Bottoni accetta/rifiuta
-  if (!risposto) {
-    cards += '<div style="display:flex;gap:10px;margin-top:14px">';
-    cards += '<button onclick="rispondiTicket(currentTicketKey,\'rifiutato\')" style="flex:1;padding:14px;background:#fff;border:2px solid #ef4444;color:#ef4444;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer">&#10060; Rifiuta</button>';
-    cards += '<button onclick="rispondiTicket(currentTicketKey,\'accettato\')" style="flex:1;padding:14px;background:#22c55e;border:none;color:#fff;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer">&#9989; Accetta</button>';
-    cards += '</div>';
-  }
-  cards += '</div>';
-  // Contatti
-  if (set.tel || set.email) {
-    cards += '<div style="background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.07)">';
-    cards += '<div style="font-size:11px;font-weight:600;color:#6b7280;letter-spacing:.08em;margin-bottom:8px">CONTATTI</div>';
-    if (set.tel) cards += '<div style="font-size:14px;color:#374151;margin-bottom:4px">&#128222; ' + set.tel + '</div>';
-    if (set.email) cards += '<div style="font-size:14px;color:#374151">&#9993;&#65039; ' + set.email + '</div>';
-    cards += '</div>';
-  }
-  cards += '</div>';
-  html += cards + '</div>';
-  ticketEl.innerHTML = html;
-}
-
-function rispondiTicket(key, risposta) {
-  // Salva risposta in localStorage (sul telefono del cliente)
-  // e aggiorna l'URL con la risposta inclusa
-  try {
-    var t = JSON.parse(decodeURIComponent(escape(atob(key))));
-    t.rip.ticketRisposta = risposta;
-    var encoded = btoa(unescape(encodeURIComponent(JSON.stringify(t))));
-    var base = window.location.href.split('?')[0];
-    window.history.replaceState(null, '', base + '?ticket=' + encoded);
-    checkTicketMode();
-  } catch(e) { console.error(e); }
-}
-
-checkTicketMode();
-
-aggiornaSidebar();
 
 function caricaSett() {
   aggiornaLogo();
@@ -2416,354 +2049,6 @@ function parseCSVLine(line) {
 // ============================================================
 // AVVIO
 // ============================================================
-
-// ============================================================
-// LISTINO PREZZI UFFICIALI
-// ============================================================
-var LISTINO = {
-  apple: [
-    // iPhone 16 series
-    { mod:'iPhone 16 Pro Max', cat:'Schermo', desc:'Display OLED originale', pac:289, pven:449 },
-    { mod:'iPhone 16 Pro',     cat:'Schermo', desc:'Display OLED originale', pac:259, pven:399 },
-    { mod:'iPhone 16 Plus',    cat:'Schermo', desc:'Display OLED originale', pac:219, pven:349 },
-    { mod:'iPhone 16',         cat:'Schermo', desc:'Display OLED originale', pac:189, pven:299 },
-    // iPhone 15 series
-    { mod:'iPhone 15 Pro Max', cat:'Schermo', desc:'Display OLED originale', pac:259, pven:389 },
-    { mod:'iPhone 15 Pro',     cat:'Schermo', desc:'Display OLED originale', pac:229, pven:359 },
-    { mod:'iPhone 15 Plus',    cat:'Schermo', desc:'Display OLED originale', pac:189, pven:299 },
-    { mod:'iPhone 15',         cat:'Schermo', desc:'Display OLED originale', pac:169, pven:269 },
-    // iPhone 14 series
-    { mod:'iPhone 14 Pro Max', cat:'Schermo', desc:'Display OLED originale', pac:219, pven:339 },
-    { mod:'iPhone 14 Pro',     cat:'Schermo', desc:'Display OLED originale', pac:199, pven:319 },
-    { mod:'iPhone 14 Plus',    cat:'Schermo', desc:'Display OLED originale', pac:169, pven:269 },
-    { mod:'iPhone 14',         cat:'Schermo', desc:'Display OLED originale', pac:149, pven:239 },
-    // iPhone 13 series
-    { mod:'iPhone 13 Pro Max', cat:'Schermo', desc:'Display OLED originale', pac:189, pven:299 },
-    { mod:'iPhone 13 Pro',     cat:'Schermo', desc:'Display OLED originale', pac:169, pven:269 },
-    { mod:'iPhone 13',         cat:'Schermo', desc:'Display OLED originale', pac:139, pven:219 },
-    { mod:'iPhone 13 Mini',    cat:'Schermo', desc:'Display OLED originale', pac:119, pven:189 },
-    // iPhone 12 series
-    { mod:'iPhone 12 Pro Max', cat:'Schermo', desc:'Display OLED originale', pac:159, pven:249 },
-    { mod:'iPhone 12 Pro',     cat:'Schermo', desc:'Display OLED originale', pac:149, pven:229 },
-    { mod:'iPhone 12',         cat:'Schermo', desc:'Display OLED originale', pac:129, pven:199 },
-    { mod:'iPhone 12 Mini',    cat:'Schermo', desc:'Display OLED originale', pac:109, pven:169 },
-    // iPhone 11 series
-    { mod:'iPhone 11 Pro Max', cat:'Schermo', desc:'Display OLED originale', pac:139, pven:219 },
-    { mod:'iPhone 11 Pro',     cat:'Schermo', desc:'Display OLED originale', pac:129, pven:199 },
-    { mod:'iPhone 11',         cat:'Schermo', desc:'Display LCD originale',  pac:89,  pven:139 },
-    // Batterie Apple
-    { mod:'iPhone 16 Pro Max', cat:'Batteria', desc:'Batteria originale Apple', pac:69, pven:109 },
-    { mod:'iPhone 16 Pro',     cat:'Batteria', desc:'Batteria originale Apple', pac:65, pven:99  },
-    { mod:'iPhone 16',         cat:'Batteria', desc:'Batteria originale Apple', pac:59, pven:89  },
-    { mod:'iPhone 15 Pro Max', cat:'Batteria', desc:'Batteria originale Apple', pac:65, pven:99  },
-    { mod:'iPhone 15 Pro',     cat:'Batteria', desc:'Batteria originale Apple', pac:59, pven:89  },
-    { mod:'iPhone 15',         cat:'Batteria', desc:'Batteria originale Apple', pac:55, pven:85  },
-    { mod:'iPhone 14 Pro Max', cat:'Batteria', desc:'Batteria originale Apple', pac:59, pven:89  },
-    { mod:'iPhone 14 Pro',     cat:'Batteria', desc:'Batteria originale Apple', pac:55, pven:85  },
-    { mod:'iPhone 14',         cat:'Batteria', desc:'Batteria originale Apple', pac:49, pven:79  },
-    { mod:'iPhone 13 Pro Max', cat:'Batteria', desc:'Batteria originale Apple', pac:55, pven:85  },
-    { mod:'iPhone 13',         cat:'Batteria', desc:'Batteria originale Apple', pac:49, pven:75  },
-    { mod:'iPhone 12',         cat:'Batteria', desc:'Batteria originale Apple', pac:45, pven:69  },
-    { mod:'iPhone 11',         cat:'Batteria', desc:'Batteria originale Apple', pac:39, pven:59  },
-    { mod:'iPhone SE 3a gen',cat:'Batteria', desc:'Batteria originale Apple', pac:39, pven:59  },
-    // Connettori Apple
-    { mod:'iPhone 15-16 USB-C', cat:'Connettore', desc:'Connettore ricarica USB-C', pac:39, pven:69 },
-    { mod:'iPhone 14 e prec Lightning', cat:'Connettore', desc:'Connettore Lightning', pac:29, pven:49 },
-    // iPad
-    { mod:'iPad Pro 12.9 (2024)', cat:'Schermo', desc:'Display OLED originale', pac:389, pven:599 },
-    { mod:'iPad Pro 11 (2024)',   cat:'Schermo', desc:'Display OLED originale', pac:299, pven:469 },
-    { mod:'iPad Air 13 (2024)',   cat:'Schermo', desc:'Display LCD originale',  pac:189, pven:299 },
-    { mod:'iPad Air 11 (2024)',   cat:'Schermo', desc:'Display LCD originale',  pac:159, pven:249 },
-    { mod:'iPad 10 gen',          cat:'Schermo', desc:'Display LCD originale',  pac:129, pven:199 },
-    { mod:'iPad Mini 6',          cat:'Schermo', desc:'Display LCD originale',  pac:149, pven:229 },
-  ],
-  samsung: [
-    // Galaxy S24 series
-    { mod:'Galaxy S24 Ultra', cat:'Schermo', desc:'Display Dynamic AMOLED', pac:269, pven:419 },
-    { mod:'Galaxy S24+',      cat:'Schermo', desc:'Display Dynamic AMOLED', pac:229, pven:359 },
-    { mod:'Galaxy S24',       cat:'Schermo', desc:'Display Dynamic AMOLED', pac:189, pven:299 },
-    // Galaxy S23 series
-    { mod:'Galaxy S23 Ultra', cat:'Schermo', desc:'Display Dynamic AMOLED', pac:239, pven:369 },
-    { mod:'Galaxy S23+',      cat:'Schermo', desc:'Display Dynamic AMOLED', pac:199, pven:319 },
-    { mod:'Galaxy S23',       cat:'Schermo', desc:'Display Dynamic AMOLED', pac:169, pven:269 },
-    // Galaxy S22 series
-    { mod:'Galaxy S22 Ultra', cat:'Schermo', desc:'Display Dynamic AMOLED', pac:209, pven:329 },
-    { mod:'Galaxy S22+',      cat:'Schermo', desc:'Display Dynamic AMOLED', pac:179, pven:279 },
-    { mod:'Galaxy S22',       cat:'Schermo', desc:'Display Dynamic AMOLED', pac:149, pven:239 },
-    // Galaxy A series
-    { mod:'Galaxy A55',  cat:'Schermo', desc:'Display Super AMOLED', pac:109, pven:169 },
-    { mod:'Galaxy A54',  cat:'Schermo', desc:'Display Super AMOLED', pac:99,  pven:155 },
-    { mod:'Galaxy A35',  cat:'Schermo', desc:'Display Super AMOLED', pac:89,  pven:139 },
-    { mod:'Galaxy A34',  cat:'Schermo', desc:'Display Super AMOLED', pac:79,  pven:124 },
-    { mod:'Galaxy A25',  cat:'Schermo', desc:'Display Super AMOLED', pac:69,  pven:109 },
-    { mod:'Galaxy A15',  cat:'Schermo', desc:'Display LCD',          pac:49,  pven:79  },
-    // Batterie Samsung
-    { mod:'Galaxy S24 Ultra', cat:'Batteria', desc:'Batteria originale Samsung', pac:59, pven:89 },
-    { mod:'Galaxy S24',       cat:'Batteria', desc:'Batteria originale Samsung', pac:49, pven:75 },
-    { mod:'Galaxy S23 Ultra', cat:'Batteria', desc:'Batteria originale Samsung', pac:55, pven:85 },
-    { mod:'Galaxy S23',       cat:'Batteria', desc:'Batteria originale Samsung', pac:45, pven:69 },
-    { mod:'Galaxy A55',       cat:'Batteria', desc:'Batteria originale Samsung', pac:35, pven:55 },
-    { mod:'Galaxy A54',       cat:'Batteria', desc:'Batteria originale Samsung', pac:32, pven:49 },
-    { mod:'Galaxy A34',       cat:'Batteria', desc:'Batteria originale Samsung', pac:29, pven:45 },
-    // Galaxy Z Fold/Flip
-    { mod:'Galaxy Z Fold6',  cat:'Schermo', desc:'Display interno pieghevole', pac:449, pven:699 },
-    { mod:'Galaxy Z Flip6',  cat:'Schermo', desc:'Display interno pieghevole', pac:299, pven:469 },
-    { mod:'Galaxy Z Fold5',  cat:'Schermo', desc:'Display interno pieghevole', pac:399, pven:619 },
-    { mod:'Galaxy Z Flip5',  cat:'Schermo', desc:'Display interno pieghevole', pac:269, pven:419 },
-  ],
-  xiaomi: [
-    { mod:'Xiaomi 14 Ultra', cat:'Schermo', desc:'Display AMOLED LTPO', pac:219, pven:339 },
-    { mod:'Xiaomi 14 Pro',   cat:'Schermo', desc:'Display AMOLED LTPO', pac:189, pven:299 },
-    { mod:'Xiaomi 14',       cat:'Schermo', desc:'Display AMOLED',      pac:159, pven:249 },
-    { mod:'Xiaomi 13 Ultra', cat:'Schermo', desc:'Display AMOLED LTPO', pac:199, pven:309 },
-    { mod:'Redmi Note 13 Pro+', cat:'Schermo', desc:'Display AMOLED', pac:99, pven:155 },
-    { mod:'Redmi Note 13 Pro',  cat:'Schermo', desc:'Display AMOLED', pac:79, pven:124 },
-    { mod:'Redmi Note 13',      cat:'Schermo', desc:'Display AMOLED', pac:59, pven:93  },
-    { mod:'Redmi 13C',          cat:'Schermo', desc:'Display LCD',    pac:39, pven:62  },
-    { mod:'Xiaomi 14',       cat:'Batteria', desc:'Batteria originale', pac:45, pven:69 },
-    { mod:'Redmi Note 13',   cat:'Batteria', desc:'Batteria originale', pac:29, pven:45 },
-  ],
-  huawei: [
-    { mod:'Huawei P60 Pro',  cat:'Schermo', desc:'Display OLED',  pac:189, pven:299 },
-    { mod:'Huawei P50 Pro',  cat:'Schermo', desc:'Display OLED',  pac:159, pven:249 },
-    { mod:'Huawei Mate 60 Pro', cat:'Schermo', desc:'Display OLED', pac:219, pven:339 },
-    { mod:'Huawei Nova 11',  cat:'Schermo', desc:'Display OLED',  pac:99,  pven:155 },
-    { mod:'Huawei P60 Pro',  cat:'Batteria', desc:'Batteria originale', pac:49, pven:75 },
-    { mod:'Huawei P50 Pro',  cat:'Batteria', desc:'Batteria originale', pac:42, pven:65 },
-  ]
-};
-
-function apriListino() {
-  renderListino();
-  apriM('modal-listino');
-}
-
-function renderListino() {
-  var brand = document.getElementById('lst-brand').value;
-  var cat   = document.getElementById('lst-cat').value;
-  var q     = document.getElementById('lst-search').value.toLowerCase().trim();
-  var data  = LISTINO[brand] || [];
-
-  var filtered = data.filter(function(x) {
-    if (cat && x.cat !== cat) return false;
-    if (q && x.mod.toLowerCase().indexOf(q) === -1 && x.desc.toLowerCase().indexOf(q) === -1) return false;
-    return true;
-  });
-
-  var brandLabel = { apple:'Apple', samsung:'Samsung', xiaomi:'Xiaomi', huawei:'Huawei' };
-  var html = '<table style="width:100%"><thead><tr>'
-    + '<th>Modello</th><th>Categoria</th><th>Descrizione</th>'
-    + '<th>P.Acq EUR</th><th>P.Vend EUR</th><th>Azione</th>'
-    + '</tr></thead><tbody>';
-
-  if (!filtered.length) {
-    html += '<tr><td colspan="6" style="text-align:center;padding:32px;color:#555">Nessun risultato</td></tr>';
-  } else {
-    for (var i = 0; i < filtered.length; i++) {
-      var x = filtered[i];
-      var margine = x.pven - x.pac;
-      var margPct = Math.round((margine / x.pven) * 100);
-      html += '<tr>'
-        + '<td><b>' + x.mod + '</b></td>'
-        + '<td><span style="font-size:11px;background:#1a1a1a;padding:2px 7px;border-radius:10px">' + x.cat + '</span></td>'
-        + '<td style="font-size:12px;color:#888">' + x.desc + '</td>'
-        + '<td style="color:#ff8800;font-weight:700">EUR ' + x.pac.toFixed(2) + '</td>'
-        + '<td><b style="color:#40d080">EUR ' + x.pven.toFixed(2) + '</b><br><span style="font-size:10px;color:#555">+' + margPct + '% margine</span></td>'
-        + '<td><button class="btn btn-g btn-sm" style="border-color:#4080ff;color:#4080ff;white-space:nowrap" data-brand="' + brand + '" data-idx="' + i + '" onclick="importaDaListino(+this.dataset.idx, this.dataset.brand)">+ Aggiungi</button></td>'
-        + '</tr>';
-    }
-  }
-  html += '</tbody></table>';
-  document.getElementById('lst-tb').innerHTML = html;
-}
-
-function importaDaListino(idx, brand) {
-  var cat   = document.getElementById('lst-cat').value;
-  var q     = document.getElementById('lst-search').value.toLowerCase().trim();
-  var data  = LISTINO[brand] || [];
-  var filtered = data.filter(function(x) {
-    if (cat && x.cat !== cat) return false;
-    if (q && x.mod.toLowerCase().indexOf(q) === -1 && x.desc.toLowerCase().indexOf(q) === -1) return false;
-    return true;
-  });
-  var x = filtered[idx];
-  if (!x) return;
-  // Controlla se esiste già
-  var esistente = ML.findIndex(function(m) { return m.desc.toLowerCase() === (x.mod + ' - ' + x.desc).toLowerCase(); });
-  if (esistente >= 0) {
-    if (!confirm('Articolo già presente. Aggiornare i prezzi?')) return;
-    ML[esistente].pac  = x.pac;
-    ML[esistente].pven = x.pven;
-    salva(); renderMag();
-    toast('Prezzi aggiornati', x.mod);
-    return;
-  }
-  ML.push({
-    cod: brand.toUpperCase().substring(0,3) + '-' + x.mod.replace(/[^a-zA-Z0-9]/g,'').substring(0,8).toUpperCase(),
-    desc: x.mod + ' - ' + x.desc,
-    cat: x.cat,
-    qty: 0,
-    min: 1,
-    pac: x.pac,
-    pven: x.pven
-  });
-  salva(); renderMag();
-  toast('Aggiunto!', x.mod + ' - ' + x.cat);
-}
-
-// ============================================================
-// ORDINI CLIENTI
-// ============================================================
-var OL = JSON.parse(localStorage.getItem('rp_ol') || '[]');
-var OID = parseInt(localStorage.getItem('rp_oid') || '0');
-
-function apriNuovoOrdine() {
-  document.getElementById('nord-idx').value = '-1';
-  document.getElementById('nord-title').textContent = 'Nuovo Ordine Cliente';
-  ['nord-nome','nord-tel','nord-art','nord-note'].forEach(function(id){ document.getElementById(id).value=''; });
-  document.getElementById('nord-qty').value = '1';
-  document.getElementById('nord-costo').value = '';
-  document.getElementById('nord-data').value = '';
-  document.getElementById('nord-stato').value = 'In attesa';
-  apriM('modal-nord');
-}
-
-function apriModificaOrdine(id) {
-  var o = OL.find(function(x){ return x.id === id; });
-  if (!o) return;
-  document.getElementById('nord-idx').value = id;
-  document.getElementById('nord-title').textContent = 'Modifica Ordine #O' + String(id).padStart(3,'0');
-  document.getElementById('nord-nome').value = o.nome || '';
-  document.getElementById('nord-tel').value = o.tel || '';
-  document.getElementById('nord-art').value = o.art || '';
-  document.getElementById('nord-qty').value = o.qty || 1;
-  document.getElementById('nord-costo').value = o.costo || '';
-  document.getElementById('nord-data').value = o.data || '';
-  document.getElementById('nord-note').value = o.note || '';
-  document.getElementById('nord-stato').value = o.stato || 'In attesa';
-  apriM('modal-nord');
-}
-
-function salvaOrdine() {
-  var nome = document.getElementById('nord-nome').value.trim();
-  var art  = document.getElementById('nord-art').value.trim();
-  if (!nome) { alert('Inserisci il nome del cliente'); return; }
-  if (!art)  { alert('Inserisci l articolo ordinato'); return; }
-  var idx = document.getElementById('nord-idx').value;
-  var isNew = idx === '-1';
-  if (isNew) OID++;
-  var obj = {
-    id:    isNew ? OID : parseInt(idx),
-    nome:  nome,
-    tel:   document.getElementById('nord-tel').value.trim(),
-    art:   art,
-    qty:   parseInt(document.getElementById('nord-qty').value) || 1,
-    costo: parseFloat(document.getElementById('nord-costo').value) || 0,
-    data:  document.getElementById('nord-data').value,
-    note:  document.getElementById('nord-note').value.trim(),
-    stato: document.getElementById('nord-stato').value,
-    ts:    isNew ? Date.now() : (OL.find(function(x){return x.id===parseInt(idx);})||{}).ts || Date.now()
-  };
-  if (isNew) {
-    OL.unshift(obj);
-  } else {
-    var i = OL.findIndex(function(x){ return x.id === obj.id; });
-    if (i >= 0) OL[i] = obj;
-  }
-  localStorage.setItem('rp_ol', JSON.stringify(OL));
-  localStorage.setItem('rp_oid', String(OID));
-  chiudiM('modal-nord');
-  renderOrdini();
-  aggiornaNotifOrdini();
-  toast(isNew ? 'Ordine creato!' : 'Ordine aggiornato', nome + ' - ' + art);
-}
-
-function eliminaOrdine(id) {
-  if (!confirm('Eliminare questo ordine?')) return;
-  OL = OL.filter(function(x){ return x.id !== id; });
-  localStorage.setItem('rp_ol', JSON.stringify(OL));
-  renderOrdini();
-  aggiornaNotifOrdini();
-}
-
-function cambiaStatoOrdine(id, val) {
-  var o = OL.find(function(x){ return x.id === id; });
-  if (!o) return;
-  var vecchio = o.stato;
-  o.stato = val;
-  localStorage.setItem('rp_ol', JSON.stringify(OL));
-  if (val === 'Arrivato' && vecchio !== 'Arrivato') {
-    toast('Ordine arrivato!', o.art + ' per ' + o.nome);
-  }
-  renderOrdini();
-  aggiornaNotifOrdini();
-}
-
-function aggiornaNotifOrdini() {
-  var cnt = OL.filter(function(x){ return x.stato === 'Arrivato'; }).length;
-  var el = document.getElementById('nb-ordini-cnt');
-  if (el) { el.textContent = cnt; el.style.display = cnt > 0 ? 'inline' : 'none'; }
-}
-
-function renderOrdini() {
-  var qEl = document.getElementById('ord-search');
-  var stEl = document.getElementById('ord-filter-stato');
-  var q = qEl ? qEl.value.toLowerCase().trim() : '';
-  var stato = stEl ? stEl.value : '';
-
-  var filtered = OL.filter(function(o) {
-    if (q && o.nome.toLowerCase().indexOf(q)===-1 && o.art.toLowerCase().indexOf(q)===-1) return false;
-    if (stato && o.stato !== stato) return false;
-    return true;
-  });
-
-  var arrivati = OL.filter(function(x){ return x.stato==='Arrivato'; });
-  document.getElementById('ord-alert').innerHTML = arrivati.length
-    ? '<div class="alert alert-w">&#128666; <b>' + arrivati.length + ' ordine/i arrivato/i</b> — da consegnare al cliente</div>' : '';
-
-  var infoEl = document.getElementById('ord-info');
-  if (infoEl) {
-    var inCorso = OL.filter(function(x){return x.stato==='In attesa'||x.stato==='Ordinato';}).length;
-    infoEl.innerHTML = OL.length + ' ordini totali &nbsp;&bull;&nbsp; <b style="color:#4080ff">' + inCorso + ' in corso</b> &nbsp;&bull;&nbsp; <b style="color:#40d080">' + arrivati.length + ' arrivati</b>';
-  }
-
-  var tb = document.getElementById('ord-tb');
-  if (!tb) return;
-  if (!filtered.length) {
-    tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:36px;color:#555">' + (OL.length ? 'Nessun risultato' : 'Nessun ordine ancora') + '</td></tr>';
-    return;
-  }
-
-  var stati = ['In attesa','Ordinato','Arrivato','Consegnato','Annullato'];
-  var html = '';
-  for (var i = 0; i < filtered.length; i++) {
-    var o = filtered[i];
-    var dataStr = o.data ? new Date(o.data).toLocaleDateString('it-IT') : '-';
-    var tsStr   = new Date(o.ts).toLocaleDateString('it-IT');
-    var opts = stati.map(function(s){ return '<option' + (s===o.stato?' selected':'') + '>' + s + '</option>'; }).join('');
-    var idStr = '#O' + String(o.id).padStart(3,'0');
-    var statoColor = {
-      'In attesa':'#888','Ordinato':'#4080ff',
-      'Arrivato':'#40d080','Consegnato':'#555','Annullato':'#ff2200'
-    }[o.stato] || '#888';
-    html += '<tr>'
-      + '<td><code style="color:#4080ff">' + idStr + '</code></td>'
-      + '<td><b>' + o.nome + '</b>' + (o.tel ? '<br><small style="color:#555">' + o.tel + '</small>' : '') + '</td>'
-      + '<td><b>' + o.art + '</b>' + (o.note ? '<br><small style="color:#666">' + o.note + '</small>' : '') + '</td>'
-      + '<td style="text-align:center">' + o.qty + '</td>'
-      + '<td>' + (o.costo ? 'EUR ' + o.costo.toFixed(2) : '-') + '</td>'
-      + '<td>' + dataStr + '<br><small style="color:#444">' + tsStr + '</small></td>'
-      + '<td><select class="inp btn-sm" style="width:130px;color:' + statoColor + '" onchange="cambiaStatoOrdine(' + o.id + ',this.value)">' + opts + '</select></td>'
-      + '<td style="white-space:nowrap">'
-        + '<button class="btn btn-g btn-sm" style="border-color:#ff8800;color:#ff8800;margin-right:3px" onclick="apriModificaOrdine(' + o.id + ')">Modif.</button>'
-        + '<button class="btn btn-d btn-sm" onclick="eliminaOrdine(' + o.id + ')">X</button>'
-      + '</td></tr>';
-  }
-  tb.innerHTML = html;
-}
-
-
-aggiornaNotifOrdini();
 aggiornaSidebar();
 aggiornaLogo();
 initGriglia('new');

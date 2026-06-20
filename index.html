@@ -142,6 +142,7 @@ textarea.inp { resize: vertical; min-height: 65px; }
   <nav class="nav">
     <button class="nav-btn on" id="nb-dashboard"    onclick="vai('dashboard',this)">&#128202; Dashboard</button>
     <button class="nav-btn"    id="nb-riparazioni"  onclick="vai('riparazioni',this)">&#128295; Riparazioni</button>
+    <button class="nav-btn"    id="nb-preventivi"   onclick="vai('preventivi',this)">&#129302; Assistente Preventivi</button>
     <button class="nav-btn"    id="nb-clienti"      onclick="vai('clienti',this)">&#128101; Clienti</button>
     <button class="nav-btn"    id="nb-magazzino"    onclick="vai('magazzino',this)">&#128230; Magazzino</button>
     <button class="nav-btn"    id="nb-fatture"      onclick="vai('fatture',this)">&#129534; Fatture</button>
@@ -197,6 +198,27 @@ textarea.inp { resize: vertical; min-height: 65px; }
   </div>
 </section>
 
+<!-- ASSISTENTE PREVENTIVI -->
+<section id="sec-preventivi" class="sec">
+  <div class="page-h">
+    <div class="page-title">Assistente Preventivi <small>Genera un preventivo dal listino in pochi secondi</small></div>
+  </div>
+
+  <div class="card" style="padding:18px 20px;margin-bottom:16px">
+    <div class="fg">
+      <label class="fl">Modello Dispositivo *</label>
+      <input class="inp" id="pv-device" placeholder="Es: iPhone 13, Galaxy A54, Redmi Note 12, Notebook HP 15.6...">
+    </div>
+    <div class="fg">
+      <label class="fl">Componenti / Problemi Riscontrati *</label>
+      <textarea class="inp" id="pv-problemi" placeholder="Scrivi anche in linguaggio naturale, una cosa per riga. Es:&#10;schermo rotto&#10;non si carica / batteria scarica&#10;non si accende"></textarea>
+    </div>
+    <button class="btn btn-p" onclick="generaPreventivo()">&#129302; Genera Preventivo</button>
+  </div>
+
+  <div id="pv-risultato"></div>
+</section>
+
 <!-- CLIENTI -->
 <section id="sec-clienti" class="sec">
   <div class="page-h">
@@ -225,13 +247,53 @@ textarea.inp { resize: vertical; min-height: 65px; }
 <section id="sec-magazzino" class="sec">
   <div class="page-h">
     <div class="page-title">Magazzino</div>
-    <button class="btn btn-p" onclick="mostraModaleM()">+ Aggiungi Pezzo</button>
+    <button class="btn btn-p" id="mag-btn-add" onclick="mostraModaleM()">+ Aggiungi Pezzo</button>
+  </div>
+  <div class="card" style="padding:14px 18px;margin-bottom:14px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <input class="inp" id="mag-q" placeholder="&#128269; Cerca descrizione, codice o categoria..." oninput="renderMag()" style="flex:1;min-width:220px">
+      <select class="inp" id="mag-cat" onchange="renderMag()" style="width:170px">
+        <option value="">Tutte le categorie</option>
+      </select>
+      <select class="inp" id="mag-stato" onchange="renderMag()" style="width:130px">
+        <option value="">Tutti</option>
+        <option value="disp">Disponibili</option>
+        <option value="scorta">Sotto scorta</option>
+      </select>
+      <button class="btn btn-g" id="mag-btn-listino" onclick="apriListinoUfficiale()" style="border-color:#4080ff;color:#4080ff">&#129689; Listino Ufficiale</button>
+    </div>
+    <div id="mag-count" style="font-size:12px;color:#777;margin-top:10px;font-family:'DM Mono',monospace"></div>
   </div>
   <div id="mag-alert"></div>
   <div class="card">
     <table><thead><tr><th>Codice</th><th>Descrizione</th><th>Cat.</th><th>Qta</th><th>P.Acq EUR</th><th>P.Vend EUR</th><th>Azioni</th></tr></thead><tbody id="mag-tb"></tbody></table>
   </div>
 </section>
+
+<!-- LISTINO UFFICIALE (modal) -->
+<div class="modal-bg" id="modal-listino">
+  <div class="modal" style="width:920px;max-width:95vw">
+    <div class="modal-hd"><div class="modal-t">&#129689; Listino Ufficiale</div><button class="modal-x" onclick="chiudiM('modal-listino')">x</button></div>
+    <div class="modal-b">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
+        <select class="inp" id="cat-brand" onchange="renderCatalogo()" style="width:170px">
+          <option value="">Tutte le marche</option>
+        </select>
+        <select class="inp" id="cat-cat" onchange="renderCatalogo()" style="width:160px">
+          <option value="">Tutte le categorie</option>
+        </select>
+        <input class="inp" id="cat-q" placeholder="Cerca modello..." oninput="renderCatalogo()" style="width:220px">
+        <span id="cat-count" style="font-size:11px;color:#555;font-family:'DM Mono',monospace;margin-left:auto"></span>
+      </div>
+      <div class="card" style="max-height:50vh;overflow:auto">
+        <table style="min-width:680px"><thead><tr><th>Marca</th><th>Modello / Descrizione</th><th>Cat.</th><th>P.Acq EUR</th><th>P.Vend EUR</th><th>Azioni</th></tr></thead><tbody id="cat-tb"></tbody></table>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-g" onclick="chiudiM('modal-listino')">Chiudi</button>
+    </div>
+  </div>
+</div>
 
 <!-- FATTURE -->
 <section id="sec-fatture" class="sec">
@@ -605,8 +667,9 @@ textarea.inp { resize: vertical; min-height: 65px; }
 <!-- MODAL MAGAZZINO -->
 <div class="modal-bg" id="modal-m">
   <div class="modal">
-    <div class="modal-hd"><div class="modal-t">Aggiungi Pezzo</div><button class="modal-x" onclick="chiudiM('modal-m')">x</button></div>
+    <div class="modal-hd"><div class="modal-t" id="modal-m-title">Aggiungi Pezzo</div><button class="modal-x" onclick="chiudiM('modal-m')">x</button></div>
     <div class="modal-b">
+      <input type="hidden" id="m-editidx" value="">
       <div class="fr2">
         <div class="fg"><label class="fl">Codice</label><input class="inp" id="m-cod" placeholder="SCH-IP14-001"></div>
         <div class="fg"><label class="fl">Categoria</label>
@@ -679,6 +742,215 @@ var RID = parseInt(localStorage.getItem('rp_rid') || '0');
 var FID = parseInt(localStorage.getItem('rp_fid') || '0');
 var SET = JSON.parse(localStorage.getItem('rp_set') || '{"nome":"RepairPro","slogan":"Centro Riparazioni","ind":"","tel":"","email":"","piva":""}');
 
+// ============================================================
+// CATALOGO RICAMBI - Database di riferimento (prezzi indicativi mercato IT/EU)
+// brand, model, cat (Schermo/Batteria/Connettore/Vetro Posteriore/Fotocamera/Altro), pac, pven
+// ============================================================
+var CATALOGO = [
+// ---------------- APPLE iPhone - Schermi ----------------
+{brand:'Apple',model:'Schermo iPhone 16 Pro Max',cat:'Schermo',pac:140,pven:240},
+{brand:'Apple',model:'Schermo iPhone 16 Pro',cat:'Schermo',pac:120,pven:210},
+{brand:'Apple',model:'Schermo iPhone 16 Plus',cat:'Schermo',pac:95,pven:170},
+{brand:'Apple',model:'Schermo iPhone 16',cat:'Schermo',pac:85,pven:155},
+{brand:'Apple',model:'Schermo iPhone 15 Pro Max',cat:'Schermo',pac:130,pven:220},
+{brand:'Apple',model:'Schermo iPhone 15 Pro',cat:'Schermo',pac:110,pven:195},
+{brand:'Apple',model:'Schermo iPhone 15 Plus',cat:'Schermo',pac:85,pven:155},
+{brand:'Apple',model:'Schermo iPhone 15',cat:'Schermo',pac:75,pven:140},
+{brand:'Apple',model:'Schermo iPhone 14 Pro Max',cat:'Schermo',pac:110,pven:195},
+{brand:'Apple',model:'Schermo iPhone 14 Pro',cat:'Schermo',pac:95,pven:170},
+{brand:'Apple',model:'Schermo iPhone 14 Plus',cat:'Schermo',pac:75,pven:140},
+{brand:'Apple',model:'Schermo iPhone 14',cat:'Schermo',pac:60,pven:119},
+{brand:'Apple',model:'Schermo iPhone 13 Pro Max',cat:'Schermo',pac:90,pven:165},
+{brand:'Apple',model:'Schermo iPhone 13 Pro',cat:'Schermo',pac:75,pven:140},
+{brand:'Apple',model:'Schermo iPhone 13',cat:'Schermo',pac:45,pven:89},
+{brand:'Apple',model:'Schermo iPhone 13 Mini',cat:'Schermo',pac:48,pven:92},
+{brand:'Apple',model:'Schermo iPhone 12 Pro Max',cat:'Schermo',pac:70,pven:135},
+{brand:'Apple',model:'Schermo iPhone 12 Pro',cat:'Schermo',pac:55,pven:105},
+{brand:'Apple',model:'Schermo iPhone 12',cat:'Schermo',pac:38,pven:75},
+{brand:'Apple',model:'Schermo iPhone 12 Mini',cat:'Schermo',pac:40,pven:78},
+{brand:'Apple',model:'Schermo iPhone 11 Pro Max',cat:'Schermo',pac:55,pven:105},
+{brand:'Apple',model:'Schermo iPhone 11 Pro',cat:'Schermo',pac:48,pven:92},
+{brand:'Apple',model:'Schermo iPhone 11',cat:'Schermo',pac:28,pven:55},
+{brand:'Apple',model:'Schermo iPhone XS Max',cat:'Schermo',pac:45,pven:85},
+{brand:'Apple',model:'Schermo iPhone XS',cat:'Schermo',pac:38,pven:72},
+{brand:'Apple',model:'Schermo iPhone XR',cat:'Schermo',pac:25,pven:49},
+{brand:'Apple',model:'Schermo iPhone X',cat:'Schermo',pac:35,pven:68},
+{brand:'Apple',model:'Schermo iPhone SE 2022',cat:'Schermo',pac:22,pven:45},
+{brand:'Apple',model:'Schermo iPhone 8 Plus',cat:'Schermo',pac:18,pven:38},
+{brand:'Apple',model:'Schermo iPhone 8',cat:'Schermo',pac:15,pven:32},
+{brand:'Apple',model:'Schermo iPhone 7 Plus',cat:'Schermo',pac:16,pven:34},
+{brand:'Apple',model:'Schermo iPhone 7',cat:'Schermo',pac:13,pven:28},
+// ---------------- APPLE iPhone - Batterie ----------------
+{brand:'Apple',model:'Batteria iPhone 16 Pro Max',cat:'Batteria',pac:20,pven:42},
+{brand:'Apple',model:'Batteria iPhone 16 Pro',cat:'Batteria',pac:18,pven:38},
+{brand:'Apple',model:'Batteria iPhone 16',cat:'Batteria',pac:16,pven:35},
+{brand:'Apple',model:'Batteria iPhone 15 Pro Max',cat:'Batteria',pac:18,pven:39},
+{brand:'Apple',model:'Batteria iPhone 15 Pro',cat:'Batteria',pac:17,pven:37},
+{brand:'Apple',model:'Batteria iPhone 15',cat:'Batteria',pac:16,pven:35},
+{brand:'Apple',model:'Batteria iPhone 14 Pro Max',cat:'Batteria',pac:17,pven:36},
+{brand:'Apple',model:'Batteria iPhone 14 Pro',cat:'Batteria',pac:16,pven:34},
+{brand:'Apple',model:'Batteria iPhone 14',cat:'Batteria',pac:14,pven:32},
+{brand:'Apple',model:'Batteria iPhone 13 Pro Max',cat:'Batteria',pac:15,pven:33},
+{brand:'Apple',model:'Batteria iPhone 13',cat:'Batteria',pac:12,pven:29},
+{brand:'Apple',model:'Batteria iPhone 12 Pro Max',cat:'Batteria',pac:13,pven:30},
+{brand:'Apple',model:'Batteria iPhone 12',cat:'Batteria',pac:11,pven:27},
+{brand:'Apple',model:'Batteria iPhone 11 Pro Max',cat:'Batteria',pac:12,pven:28},
+{brand:'Apple',model:'Batteria iPhone 11',cat:'Batteria',pac:10,pven:24},
+{brand:'Apple',model:'Batteria iPhone XS Max',cat:'Batteria',pac:11,pven:26},
+{brand:'Apple',model:'Batteria iPhone XR',cat:'Batteria',pac:9,pven:22},
+{brand:'Apple',model:'Batteria iPhone X',cat:'Batteria',pac:9,pven:22},
+{brand:'Apple',model:'Batteria iPhone SE 2022',cat:'Batteria',pac:8,pven:20},
+{brand:'Apple',model:'Batteria iPhone 8',cat:'Batteria',pac:7,pven:18},
+{brand:'Apple',model:'Batteria iPhone 7',cat:'Batteria',pac:7,pven:17},
+// ---------------- APPLE iPhone - Vetro posteriore / Connettori / Fotocamere ----------------
+{brand:'Apple',model:'Vetro Posteriore iPhone 15 Pro',cat:'Vetro Posteriore',pac:25,pven:55},
+{brand:'Apple',model:'Vetro Posteriore iPhone 14 Pro',cat:'Vetro Posteriore',pac:22,pven:48},
+{brand:'Apple',model:'Vetro Posteriore iPhone 13',cat:'Vetro Posteriore',pac:18,pven:42},
+{brand:'Apple',model:'Vetro Posteriore iPhone 12',cat:'Vetro Posteriore',pac:16,pven:38},
+{brand:'Apple',model:'Connettore Lightning iPhone 13/14',cat:'Connettore',pac:9,pven:24},
+{brand:'Apple',model:'Connettore USB-C iPhone 15/16',cat:'Connettore',pac:10,pven:26},
+{brand:'Apple',model:'Fotocamera Posteriore iPhone 14 Pro',cat:'Fotocamera',pac:35,pven:75},
+{brand:'Apple',model:'Fotocamera Posteriore iPhone 13',cat:'Fotocamera',pac:28,pven:62},
+{brand:'Apple',model:'Fotocamera Frontale iPhone 13/14',cat:'Fotocamera',pac:18,pven:42},
+// ---------------- APPLE iPad ----------------
+{brand:'Apple',model:'Schermo iPad Pro 12.9" (2021-2022)',cat:'Schermo',pac:160,pven:280},
+{brand:'Apple',model:'Schermo iPad Pro 11"',cat:'Schermo',pac:120,pven:210},
+{brand:'Apple',model:'Schermo iPad Air 5',cat:'Schermo',pac:75,pven:140},
+{brand:'Apple',model:'Schermo iPad 10 (2022)',cat:'Schermo',pac:65,pven:120},
+{brand:'Apple',model:'Schermo iPad 9 (2021)',cat:'Schermo',pac:48,pven:92},
+{brand:'Apple',model:'Schermo iPad Mini 6',cat:'Schermo',pac:70,pven:130},
+{brand:'Apple',model:'Batteria iPad 9/10',cat:'Batteria',pac:22,pven:48},
+{brand:'Apple',model:'Batteria iPad Air 5',cat:'Batteria',pac:28,pven:58},
+{brand:'Apple',model:'Connettore USB-C iPad Air/Pro',cat:'Connettore',pac:14,pven:32},
+// ---------------- APPLE MacBook ----------------
+{brand:'Apple',model:'Batteria MacBook Air M1/M2',cat:'Batteria',pac:55,pven:110},
+{brand:'Apple',model:'Batteria MacBook Pro 13" M1/M2',cat:'Batteria',pac:60,pven:120},
+{brand:'Apple',model:'Batteria MacBook Pro 14"/16" M1 Pro/Max',cat:'Batteria',pac:85,pven:160},
+{brand:'Apple',model:'Schermo MacBook Air 13" M1/M2',cat:'Schermo',pac:220,pven:380},
+{brand:'Apple',model:'Schermo MacBook Pro 13" M1/M2',cat:'Schermo',pac:230,pven:400},
+{brand:'Apple',model:'Schermo MacBook Pro 14" M1 Pro',cat:'Schermo',pac:320,pven:550},
+{brand:'Apple',model:'Tastiera MacBook Air/Pro 13"',cat:'Altro',pac:70,pven:140},
+{brand:'Apple',model:'Trackpad MacBook Air/Pro',cat:'Altro',pac:45,pven:90},
+{brand:'Apple',model:'Caricabatteria USB-C 67W MacBook',cat:'Altro',pac:35,pven:65},
+
+// ---------------- SAMSUNG Galaxy S/Note/Z - Schermi ----------------
+{brand:'Samsung',model:'Schermo Galaxy S24 Ultra',cat:'Schermo',pac:160,pven:280},
+{brand:'Samsung',model:'Schermo Galaxy S24+',cat:'Schermo',pac:130,pven:230},
+{brand:'Samsung',model:'Schermo Galaxy S24',cat:'Schermo',pac:95,pven:169},
+{brand:'Samsung',model:'Schermo Galaxy S23 Ultra',cat:'Schermo',pac:150,pven:260},
+{brand:'Samsung',model:'Schermo Galaxy S23+',cat:'Schermo',pac:115,pven:205},
+{brand:'Samsung',model:'Schermo Galaxy S23',cat:'Schermo',pac:85,pven:155},
+{brand:'Samsung',model:'Schermo Galaxy S22 Ultra',cat:'Schermo',pac:135,pven:235},
+{brand:'Samsung',model:'Schermo Galaxy S22+',cat:'Schermo',pac:100,pven:180},
+{brand:'Samsung',model:'Schermo Galaxy S22',cat:'Schermo',pac:75,pven:140},
+{brand:'Samsung',model:'Schermo Galaxy S21 Ultra',cat:'Schermo',pac:110,pven:195},
+{brand:'Samsung',model:'Schermo Galaxy S21',cat:'Schermo',pac:65,pven:120},
+{brand:'Samsung',model:'Schermo Galaxy S20 FE',cat:'Schermo',pac:55,pven:105},
+{brand:'Samsung',model:'Schermo Galaxy Note 20 Ultra',cat:'Schermo',pac:120,pven:210},
+{brand:'Samsung',model:'Schermo Galaxy Z Flip 5',cat:'Schermo',pac:140,pven:250},
+{brand:'Samsung',model:'Schermo Galaxy Z Fold 5 (interno)',cat:'Schermo',pac:280,pven:480},
+// ---------------- SAMSUNG Galaxy A ----------------
+{brand:'Samsung',model:'Schermo Galaxy A55',cat:'Schermo',pac:55,pven:105},
+{brand:'Samsung',model:'Schermo Galaxy A54',cat:'Schermo',pac:38,pven:72},
+{brand:'Samsung',model:'Schermo Galaxy A53',cat:'Schermo',pac:35,pven:68},
+{brand:'Samsung',model:'Schermo Galaxy A52',cat:'Schermo',pac:32,pven:62},
+{brand:'Samsung',model:'Schermo Galaxy A35',cat:'Schermo',pac:42,pven:80},
+{brand:'Samsung',model:'Schermo Galaxy A34',cat:'Schermo',pac:32,pven:62},
+{brand:'Samsung',model:'Schermo Galaxy A33',cat:'Schermo',pac:30,pven:58},
+{brand:'Samsung',model:'Schermo Galaxy A25',cat:'Schermo',pac:35,pven:68},
+{brand:'Samsung',model:'Schermo Galaxy A24',cat:'Schermo',pac:28,pven:55},
+{brand:'Samsung',model:'Schermo Galaxy A23',cat:'Schermo',pac:25,pven:50},
+{brand:'Samsung',model:'Schermo Galaxy A15',cat:'Schermo',pac:24,pven:48},
+{brand:'Samsung',model:'Schermo Galaxy A14',cat:'Schermo',pac:22,pven:45},
+{brand:'Samsung',model:'Schermo Galaxy A13',cat:'Schermo',pac:20,pven:42},
+{brand:'Samsung',model:'Schermo Galaxy A12',cat:'Schermo',pac:18,pven:38},
+// ---------------- SAMSUNG Batterie ----------------
+{brand:'Samsung',model:'Batteria Galaxy S24/S23',cat:'Batteria',pac:14,pven:32},
+{brand:'Samsung',model:'Batteria Galaxy S22/S21',cat:'Batteria',pac:13,pven:30},
+{brand:'Samsung',model:'Batteria Galaxy S20',cat:'Batteria',pac:12,pven:28},
+{brand:'Samsung',model:'Batteria Galaxy A54/A55',cat:'Batteria',pac:12,pven:28},
+{brand:'Samsung',model:'Batteria Galaxy A34/A35',cat:'Batteria',pac:11,pven:26},
+{brand:'Samsung',model:'Batteria Galaxy A14/A24/A25',cat:'Batteria',pac:10,pven:24},
+{brand:'Samsung',model:'Batteria Galaxy A12/A13',cat:'Batteria',pac:9,pven:22},
+// ---------------- SAMSUNG Connettori/Altro ----------------
+{brand:'Samsung',model:'Connettore USB-C Galaxy S serie',cat:'Connettore',pac:7,pven:16},
+{brand:'Samsung',model:'Connettore USB-C Galaxy A serie',cat:'Connettore',pac:6,pven:14},
+{brand:'Samsung',model:'Vetro Posteriore Galaxy S24',cat:'Vetro Posteriore',pac:20,pven:48},
+{brand:'Samsung',model:'Vetro Posteriore Galaxy A54',cat:'Vetro Posteriore',pac:14,pven:32},
+
+// ---------------- XIAOMI / REDMI / POCO ----------------
+{brand:'Xiaomi',model:'Schermo Xiaomi 14',cat:'Schermo',pac:90,pven:165},
+{brand:'Xiaomi',model:'Schermo Xiaomi 13',cat:'Schermo',pac:80,pven:145},
+{brand:'Xiaomi',model:'Schermo Xiaomi 12',cat:'Schermo',pac:65,pven:120},
+{brand:'Xiaomi',model:'Schermo Xiaomi 11',cat:'Schermo',pac:55,pven:105},
+{brand:'Xiaomi',model:'Schermo Redmi Note 13 Pro',cat:'Schermo',pac:40,pven:78},
+{brand:'Xiaomi',model:'Schermo Redmi Note 13',cat:'Schermo',pac:30,pven:58},
+{brand:'Xiaomi',model:'Schermo Redmi Note 12 Pro',cat:'Schermo',pac:35,pven:68},
+{brand:'Xiaomi',model:'Schermo Redmi Note 12',cat:'Schermo',pac:26,pven:52},
+{brand:'Xiaomi',model:'Schermo Redmi Note 11 Pro',cat:'Schermo',pac:30,pven:60},
+{brand:'Xiaomi',model:'Schermo Redmi Note 11',cat:'Schermo',pac:24,pven:48},
+{brand:'Xiaomi',model:'Schermo Redmi Note 10',cat:'Schermo',pac:22,pven:44},
+{brand:'Xiaomi',model:'Schermo Redmi 13C',cat:'Schermo',pac:18,pven:38},
+{brand:'Xiaomi',model:'Schermo Redmi 12',cat:'Schermo',pac:18,pven:38},
+{brand:'Xiaomi',model:'Schermo Redmi 10',cat:'Schermo',pac:16,pven:34},
+{brand:'Xiaomi',model:'Schermo Poco X6',cat:'Schermo',pac:32,pven:62},
+{brand:'Xiaomi',model:'Schermo Poco F5',cat:'Schermo',pac:45,pven:85},
+{brand:'Xiaomi',model:'Schermo Poco M6',cat:'Schermo',pac:22,pven:45},
+{brand:'Xiaomi',model:'Batteria Xiaomi 13/14',cat:'Batteria',pac:13,pven:30},
+{brand:'Xiaomi',model:'Batteria Xiaomi 11/12',cat:'Batteria',pac:11,pven:26},
+{brand:'Xiaomi',model:'Batteria Redmi Note 12/13',cat:'Batteria',pac:9,pven:22},
+{brand:'Xiaomi',model:'Batteria Redmi Note 10/11',cat:'Batteria',pac:8,pven:20},
+{brand:'Xiaomi',model:'Batteria Redmi 10/12/13C',cat:'Batteria',pac:8,pven:19},
+{brand:'Xiaomi',model:'Connettore USB-C Redmi/Poco',cat:'Connettore',pac:6,pven:14},
+{brand:'Xiaomi',model:'Vetro Posteriore Redmi Note serie',cat:'Vetro Posteriore',pac:10,pven:24},
+
+// ---------------- HUAWEI ----------------
+{brand:'Huawei',model:'Schermo Huawei P60 Pro',cat:'Schermo',pac:110,pven:195},
+{brand:'Huawei',model:'Schermo Huawei P50 Pro',cat:'Schermo',pac:95,pven:170},
+{brand:'Huawei',model:'Schermo Huawei P40 Pro',cat:'Schermo',pac:75,pven:140},
+{brand:'Huawei',model:'Schermo Huawei P40 Lite',cat:'Schermo',pac:35,pven:68},
+{brand:'Huawei',model:'Schermo Huawei P30 Pro',cat:'Schermo',pac:60,pven:115},
+{brand:'Huawei',model:'Schermo Huawei P30 Lite',cat:'Schermo',pac:28,pven:55},
+{brand:'Huawei',model:'Schermo Huawei Mate 40 Pro',cat:'Schermo',pac:120,pven:210},
+{brand:'Huawei',model:'Schermo Huawei Mate 20 Pro',cat:'Schermo',pac:80,pven:150},
+{brand:'Huawei',model:'Schermo Huawei Nova 11',cat:'Schermo',pac:45,pven:85},
+{brand:'Huawei',model:'Schermo Huawei Nova 9',cat:'Schermo',pac:38,pven:72},
+{brand:'Huawei',model:'Schermo Huawei Y9 / Y7',cat:'Schermo',pac:22,pven:45},
+{brand:'Huawei',model:'Batteria Huawei P60/P50',cat:'Batteria',pac:16,pven:36},
+{brand:'Huawei',model:'Batteria Huawei P40/P30',cat:'Batteria',pac:13,pven:30},
+{brand:'Huawei',model:'Batteria Huawei Mate serie',cat:'Batteria',pac:15,pven:34},
+{brand:'Huawei',model:'Batteria Huawei Nova serie',cat:'Batteria',pac:11,pven:26},
+{brand:'Huawei',model:'Connettore USB-C Huawei P/Mate',cat:'Connettore',pac:7,pven:16},
+
+// ---------------- NOTEBOOK - Schermi ----------------
+{brand:'Notebook',model:'Display 13.3" FHD IPS (HP/Dell/Lenovo)',cat:'Schermo',pac:50,pven:95},
+{brand:'Notebook',model:'Display 14" FHD IPS',cat:'Schermo',pac:55,pven:99},
+{brand:'Notebook',model:'Display 15.6" FHD IPS',cat:'Schermo',pac:55,pven:99},
+{brand:'Notebook',model:'Display 15.6" HD TN',cat:'Schermo',pac:38,pven:72},
+{brand:'Notebook',model:'Display 17.3" FHD IPS',cat:'Schermo',pac:65,pven:120},
+{brand:'Notebook',model:'Display Touch 13"-14" (convertibili)',cat:'Schermo',pac:90,pven:160},
+{brand:'Notebook',model:'Cerniere (coppia) notebook 14"-15.6"',cat:'Altro',pac:18,pven:40},
+// ---------------- NOTEBOOK - Batterie ----------------
+{brand:'Notebook',model:'Batteria HP Pavilion/EliteBook',cat:'Batteria',pac:35,pven:68},
+{brand:'Notebook',model:'Batteria Dell Inspiron/Latitude',cat:'Batteria',pac:38,pven:72},
+{brand:'Notebook',model:'Batteria Lenovo IdeaPad/ThinkPad',cat:'Batteria',pac:40,pven:75},
+{brand:'Notebook',model:'Batteria Asus VivoBook/ZenBook',cat:'Batteria',pac:35,pven:68},
+{brand:'Notebook',model:'Batteria Acer Aspire/Swift',cat:'Batteria',pac:32,pven:62},
+// ---------------- NOTEBOOK - Tastiere / Alimentatori / Componenti ----------------
+{brand:'Notebook',model:'Tastiera notebook 15.6" (layout IT)',cat:'Altro',pac:20,pven:45},
+{brand:'Notebook',model:'Tastiera notebook 14" (layout IT)',cat:'Altro',pac:18,pven:42},
+{brand:'Notebook',model:'Alimentatore universale 65W',cat:'Altro',pac:14,pven:32},
+{brand:'Notebook',model:'Alimentatore originale 90W',cat:'Altro',pac:25,pven:48},
+{brand:'Notebook',model:'Ventola raffreddamento CPU notebook',cat:'Altro',pac:12,pven:30},
+{brand:'Notebook',model:'SSD M.2 NVMe 512GB',cat:'Altro',pac:35,pven:65},
+{brand:'Notebook',model:'SSD M.2 NVMe 1TB',cat:'Altro',pac:55,pven:99},
+{brand:'Notebook',model:'RAM SODIMM DDR4 8GB',cat:'Altro',pac:22,pven:42},
+{brand:'Notebook',model:'RAM SODIMM DDR4 16GB',cat:'Altro',pac:38,pven:68},
+{brand:'Notebook',model:'Cerniera + cover schermo notebook',cat:'Altro',pac:16,pven:38},
+{brand:'Notebook',model:'Connettore DC Jack alimentazione',cat:'Connettore',pac:8,pven:20},
+];
+
+
 var ML = JSON.parse(localStorage.getItem('rp_ml') || 'null');
 if (!ML) {
   ML = [
@@ -723,6 +995,7 @@ function vai(id, btn) {
   if (btn) btn.classList.add('on');
   if (id === 'dashboard')   renderDash();
   if (id === 'riparazioni') renderRip();
+  if (id === 'preventivi')  initPreventivi();
   if (id === 'clienti')     renderClienti();
   if (id === 'magazzino')   renderMag();
   if (id === 'fatture')     renderFat();
@@ -1612,12 +1885,18 @@ function renderDash() {
 // ============================================================
 // MAGAZZINO
 // ============================================================
-function mostraModaleM() { apriM('modal-m'); }
+function mostraModaleM() { document.getElementById('modal-m-title').textContent = 'Aggiungi Pezzo'; document.getElementById('m-editidx').value = ''; var ids=['m-cod','m-desc','m-pac','m-pven']; for (var i=0;i<ids.length;i++) document.getElementById(ids[i]).value=''; document.getElementById('m-qty').value=1; document.getElementById('m-min').value=2; apriM('modal-m'); }
+
+function apriListinoUfficiale() {
+  apriM('modal-listino');
+  renderCatalogo();
+}
 
 function salvaMag() {
   var desc = document.getElementById('m-desc').value.trim();
   if (!desc) { alert('Inserisci la descrizione'); return; }
-  ML.push({
+  var editIdx = document.getElementById('m-editidx').value;
+  var obj = {
     cod: document.getElementById('m-cod').value || 'N/A',
     desc: desc,
     cat: document.getElementById('m-cat').value,
@@ -1625,25 +1904,79 @@ function salvaMag() {
     min: parseInt(document.getElementById('m-min').value) || 0,
     pac: parseFloat(document.getElementById('m-pac').value) || 0,
     pven: parseFloat(document.getElementById('m-pven').value) || 0
-  });
+  };
+  if (editIdx !== '') {
+    ML[parseInt(editIdx)] = obj;
+  } else {
+    ML.push(obj);
+  }
   salva();
   chiudiM('modal-m');
   renderMag();
   var ids = ['m-cod','m-desc','m-pac','m-pven'];
   for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).value = '';
-  showToast('Pezzo aggiunto!', desc);
+  document.getElementById('m-editidx').value = '';
+  showToast(editIdx !== '' ? 'Pezzo aggiornato!' : 'Pezzo aggiunto!', desc);
+}
+
+function modificaMagItem(i) {
+  var m = ML[i];
+  if (!m) return;
+  document.getElementById('modal-m-title').textContent = 'Modifica Pezzo';
+  document.getElementById('m-editidx').value = i;
+  document.getElementById('m-cod').value = m.cod;
+  document.getElementById('m-cat').value = m.cat;
+  document.getElementById('m-desc').value = m.desc;
+  document.getElementById('m-qty').value = m.qty;
+  document.getElementById('m-min').value = m.min;
+  document.getElementById('m-pac').value = m.pac;
+  document.getElementById('m-pven').value = m.pven;
+  apriM('modal-m');
+}
+
+function popolaFiltroCategoriaMag() {
+  var sel = document.getElementById('mag-cat');
+  var cur = sel.value;
+  var cats = [];
+  for (var i = 0; i < ML.length; i++) { if (cats.indexOf(ML[i].cat) === -1) cats.push(ML[i].cat); }
+  cats.sort();
+  var html = '<option value="">Tutte le categorie</option>';
+  for (var i = 0; i < cats.length; i++) html += '<option value="' + cats[i] + '">' + cats[i] + '</option>';
+  if (sel.innerHTML !== html) { sel.innerHTML = html; sel.value = cur; }
 }
 
 function renderMag() {
+  popolaFiltroCategoriaMag();
+  var q = (document.getElementById('mag-q') || {}).value || '';
+  var ql = q.toLowerCase();
+  var catF = (document.getElementById('mag-cat') || {}).value || '';
+  var statoF = (document.getElementById('mag-stato') || {}).value || '';
+
   var sc = [];
   for (var i = 0; i < ML.length; i++) { if (ML[i].qty <= ML[i].min) sc.push(ML[i]); }
   document.getElementById('mag-alert').innerHTML = sc.length
     ? '<div class="alert alert-w"><b>' + sc.length + ' articolo/i</b> sotto scorta minima</div>' : '';
-  var tb = document.getElementById('mag-tb');
-  if (!ML.length) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:36px;color:#555">Magazzino vuoto</td></tr>'; return; }
-  var html = '';
+
+  var disp = ML.filter(function(m) { return m.qty > 0; }).length;
+
+  var list = [];
   for (var i = 0; i < ML.length; i++) {
     var m = ML[i];
+    if (ql && m.desc.toLowerCase().indexOf(ql) === -1 && m.cod.toLowerCase().indexOf(ql) === -1 && m.cat.toLowerCase().indexOf(ql) === -1) continue;
+    if (catF && m.cat !== catF) continue;
+    if (statoF === 'disp' && m.qty <= 0) continue;
+    if (statoF === 'scorta' && m.qty > m.min) continue;
+    list.push({ idx: i, item: m });
+  }
+
+  document.getElementById('mag-count').textContent = ML.length + ' articoli  \u2022  ' + disp + ' disponibili  \u2022  ' + sc.length + ' sotto scorta';
+
+  var tb = document.getElementById('mag-tb');
+  if (!list.length) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:36px;color:#555">Nessun articolo trovato</td></tr>'; return; }
+  var html = '';
+  for (var k = 0; k < list.length; k++) {
+    var i = list[k].idx;
+    var m = list[k].item;
     html += '<tr>'
       + '<td><code style="color:#ff8800">' + m.cod + '</code></td>'
       + '<td><b>' + m.desc + '</b></td>'
@@ -1654,6 +1987,7 @@ function renderMag() {
       + '<td style="white-space:nowrap">'
         + '<button class="btn btn-g btn-sm" style="border-color:#40d080;color:#40d080;margin-right:3px" data-mi="' + i + '" onclick="adjQta(+this.dataset.mi,1)">+</button>'
         + '<button class="btn btn-g btn-sm" style="margin-right:3px" data-mi="' + i + '" onclick="adjQta(+this.dataset.mi,-1)">-</button>'
+        + '<button class="btn btn-g btn-sm" style="border-color:#ffaa00;color:#ffaa00;margin-right:3px" data-mi="' + i + '" onclick="modificaMagItem(+this.dataset.mi)">Modif.</button>'
         + '<button class="btn btn-d btn-sm" data-mi="' + i + '" onclick="elimMag(+this.dataset.mi)">X</button>'
       + '</td></tr>';
   }
@@ -1662,6 +1996,279 @@ function renderMag() {
 
 function adjQta(i, d) { ML[i].qty = Math.max(0, ML[i].qty + d); salva(); renderMag(); }
 function elimMag(i) { if (!confirm('Eliminare?')) return; ML.splice(i, 1); salva(); renderMag(); }
+
+// ============================================================
+// CATALOGO RICAMBI (listino di riferimento -> import in Magazzino)
+// ============================================================
+var _catList = [];
+
+function popolaFiltriCatalogo() {
+  var brandSel = document.getElementById('cat-brand');
+  var catSel = document.getElementById('cat-cat');
+  if (brandSel.options.length <= 1) {
+    var brands = [];
+    for (var i = 0; i < CATALOGO.length; i++) { if (brands.indexOf(CATALOGO[i].brand) === -1) brands.push(CATALOGO[i].brand); }
+    brands.sort();
+    for (var i = 0; i < brands.length; i++) brandSel.innerHTML += '<option value="' + brands[i] + '">' + brands[i] + '</option>';
+  }
+  if (catSel.options.length <= 1) {
+    var cats = [];
+    for (var i = 0; i < CATALOGO.length; i++) { if (cats.indexOf(CATALOGO[i].cat) === -1) cats.push(CATALOGO[i].cat); }
+    cats.sort();
+    for (var i = 0; i < cats.length; i++) catSel.innerHTML += '<option value="' + cats[i] + '">' + cats[i] + '</option>';
+  }
+}
+
+function renderCatalogo() {
+  popolaFiltriCatalogo();
+  var brand = document.getElementById('cat-brand').value;
+  var cat = document.getElementById('cat-cat').value;
+  var q = document.getElementById('cat-q').value.trim().toLowerCase();
+  var list = CATALOGO.filter(function(c) {
+    if (brand && c.brand !== brand) return false;
+    if (cat && c.cat !== cat) return false;
+    if (q && c.model.toLowerCase().indexOf(q) === -1) return false;
+    return true;
+  });
+  _catList = list;
+  document.getElementById('cat-count').textContent = list.length + ' articolo/i';
+  var tb = document.getElementById('cat-tb');
+  if (!list.length) { tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:36px;color:#555">Nessun articolo trovato</td></tr>'; return; }
+  var html = '';
+  for (var i = 0; i < list.length; i++) {
+    var c = list[i];
+    html += '<tr>'
+      + '<td><b style="color:#4080ff">' + c.brand + '</b></td>'
+      + '<td>' + c.model + '</td>'
+      + '<td>' + c.cat + '</td>'
+      + '<td>EUR ' + c.pac.toFixed(2) + '</td>'
+      + '<td>EUR ' + c.pven.toFixed(2) + '</td>'
+      + '<td><button class="btn btn-p btn-sm" data-ci="' + i + '" onclick="importaCatalogo(+this.dataset.ci)">+ Importa</button></td>'
+      + '</tr>';
+  }
+  tb.innerHTML = html;
+}
+
+// ============================================================
+// ASSISTENTE PREVENTIVI (matching locale, no IA esterna)
+// ============================================================
+
+// Manodopera per categoria pezzo
+var MANODOPERA_SEMPLICE = 30;
+var MANODOPERA_COMPLESSA = 50;
+var CAT_SEMPLICI = ['Schermo', 'Batteria', 'Vetro Posteriore', 'Connettore'];
+// tutto il resto (Fotocamera, Scheda madre, Altro, ecc.) = complesso
+
+function manodoperaPerCategoria(cat) {
+  return CAT_SEMPLICI.indexOf(cat) !== -1 ? MANODOPERA_SEMPLICE : MANODOPERA_COMPLESSA;
+}
+
+// Dizionario sinonimi: frase/parola chiave (minuscolo) -> categoria pezzo
+var SINONIMI_PROBLEMA = [
+  { cat: 'Schermo', kw: ['schermo', 'display', 'vetro rotto', 'touch', 'vetro frontale', 'lcd', 'oled', 'crepato', 'incrinato', 'non tocca'] },
+  { cat: 'Batteria', kw: ['batteria', 'non si carica', 'scarica', 'autonomia', 'si scarica', 'gonfia', 'gonfiore'] },
+  { cat: 'Connettore', kw: ['connettore', 'porta di ricarica', 'jack', 'usb-c', 'lightning', 'non carica bene', 'cavo non entra', 'dc jack', 'alimentazione'] },
+  { cat: 'Vetro Posteriore', kw: ['vetro posteriore', 'scocca posteriore', 'cover posteriore', 'retro rotto', 'vetro dietro'] },
+  { cat: 'Fotocamera', kw: ['fotocamera', 'camera', 'foto sfocate', 'autofocus', 'obiettivo'] },
+  { cat: 'Scheda madre', kw: ['scheda madre', 'non si accende', 'morto', 'bagnato', 'liquido', 'corto circuito', 'scheda logica', 'mainboard'] },
+  { cat: 'Altro', kw: ['tastiera', 'trackpad', 'ventola', 'surriscalda', 'rumore', 'cerniera', 'ram', 'ssd', 'alimentatore', 'caricabatterie'] }
+];
+
+function trovaCategoriaProblema(testo) {
+  var t = testo.toLowerCase();
+  var best = null, bestLen = 0;
+  for (var i = 0; i < SINONIMI_PROBLEMA.length; i++) {
+    var s = SINONIMI_PROBLEMA[i];
+    for (var k = 0; k < s.kw.length; k++) {
+      if (t.indexOf(s.kw[k]) !== -1 && s.kw[k].length > bestLen) {
+        best = s.cat; bestLen = s.kw[k].length;
+      }
+    }
+  }
+  return best; // null se non riconosciuto
+}
+
+function tokenizza(s) {
+  return s.toLowerCase().replace(/[^a-z0-9àèéìòù\s]/g, ' ').split(/\s+/).filter(function(w) { return w.length > 1; });
+}
+
+// Cerca il miglior articolo per (device, categoria, parole del problema) sia nel Magazzino che nel Catalogo
+function trovaArticoloMigliore(deviceTokens, categoria, problemaTokens) {
+  var candidati = [];
+
+  for (var i = 0; i < ML.length; i++) {
+    var m = ML[i];
+    if (categoria && m.cat !== categoria) continue;
+    var itemTok = tokenizza(m.desc);
+    var score = scoreMatch(deviceTokens, itemTok) + scoreMatch(problemaTokens, itemTok) * 0.8;
+    if (score > 0) candidati.push({ src: 'magazzino', item: m, score: score + 0.5 }); // leggero bonus: e' gia' tuo, pronto all'uso
+  }
+
+  for (var i = 0; i < CATALOGO.length; i++) {
+    var c = CATALOGO[i];
+    if (categoria && c.cat !== categoria) continue;
+    var itemTok = tokenizza(c.brand + ' ' + c.model);
+    var score = scoreMatch(deviceTokens, itemTok) + scoreMatch(problemaTokens, itemTok) * 0.8;
+    if (score > 0) candidati.push({ src: 'catalogo', item: c, score: score });
+  }
+
+  if (!candidati.length) return null;
+  candidati.sort(function(a, b) { return b.score - a.score; });
+  // richiediamo un punteggio minimo (almeno una parola "forte" del modello o del problema deve combaciare)
+  if (candidati[0].score < 1.5) return null;
+  // segnaliamo come "approssimato" se i NUMERI del modello dispositivo (es. "16") non hanno
+  // trovato corrispondenza esatta nell'articolo scelto (es. e' stato proposto un "14" al posto di un "16")
+  var deviceNums = deviceTokens.filter(function(t) { return /^\d+$/.test(t); });
+  if (deviceNums.length) {
+    var bestItemTok = candidati[0].src === 'magazzino' ? tokenizza(candidati[0].item.desc) : tokenizza(candidati[0].item.brand + ' ' + candidati[0].item.model);
+    var numMatch = deviceNums.some(function(n) { return bestItemTok.indexOf(n) !== -1; });
+    candidati[0].esatto = numMatch;
+  } else {
+    candidati[0].esatto = true;
+  }
+  return candidati[0];
+}
+
+// Punteggio: parole numeriche (modello, es. "13","12") valgono di piu', ma SOLO se accompagnate
+// da almeno un'altra parola di testo in comune (marca/nome/keyword) per evitare falsi positivi tra modelli diversi.
+function scoreMatch(tokens, itemTokens) {
+  var scoreText = 0, scoreNum = 0;
+  for (var i = 0; i < tokens.length; i++) {
+    var tok = tokens[i];
+    var isNum = /^\d+$/.test(tok);
+    if (itemTokens.indexOf(tok) !== -1) {
+      if (isNum) scoreNum += 1.5; else scoreText += 1;
+    }
+  }
+  if (scoreText === 0) return 0;
+  return scoreText + scoreNum;
+}
+
+// Parole "di servizio" da scartare quando si cercano keyword utili dentro la frase problema (no stopword italiane comuni)
+var STOPWORDS_PROBLEMA = ['non', 'si', 'sembra', 'subito', 'molto', 'poco', 'bene', 'piu', 'meno', 'che', 'con', 'per', 'del', 'della', 'dei', 'delle'];
+function tokenizzaProblema(s) {
+  return tokenizza(s).filter(function(w) { return STOPWORDS_PROBLEMA.indexOf(w) === -1; });
+}
+
+var _ultimoPreventivo = null;
+
+function generaPreventivo() {
+  var device = document.getElementById('pv-device').value.trim();
+  var problemiRaw = document.getElementById('pv-problemi').value.trim();
+  if (!device || !problemiRaw) { alert('Inserisci modello dispositivo e almeno un problema'); return; }
+
+  var righe = problemiRaw.split('\n').map(function(r) { return r.trim(); }).filter(Boolean);
+  var deviceTokens = tokenizza(device);
+  var voci = [];
+  var totalePezzi = 0, totaleManodopera = 0;
+
+  for (var i = 0; i < righe.length; i++) {
+    var riga = righe[i];
+    var cat = trovaCategoriaProblema(riga);
+    var problemaTokens = tokenizzaProblema(riga);
+    var match = trovaArticoloMigliore(deviceTokens, cat, problemaTokens);
+    var manodopera = manodoperaPerCategoria(cat || (match ? match.item.cat : 'Altro'));
+    var voce = { problema: riga, categoria: cat, manodopera: manodopera, match: match };
+    if (match) {
+      var prezzoPezzo = match.src === 'magazzino' ? match.item.pven : match.item.pven;
+      voce.prezzoPezzo = prezzoPezzo;
+      voce.descrizionePezzo = match.src === 'magazzino' ? match.item.desc : (match.item.brand + ' - ' + match.item.model);
+      voce.fonte = match.src;
+      voce.approssimato = !match.esatto;
+      voce.disponibile = match.src === 'magazzino' ? match.item.qty : null;
+      totalePezzi += prezzoPezzo;
+    } else {
+      voce.prezzoPezzo = null;
+    }
+    totaleManodopera += manodopera;
+    voci.push(voce);
+  }
+
+  _ultimoPreventivo = { device: device, voci: voci, totalePezzi: totalePezzi, totaleManodopera: totaleManodopera, totale: totalePezzi + totaleManodopera };
+  renderPreventivo();
+}
+
+function renderPreventivo() {
+  var p = _ultimoPreventivo;
+  var el = document.getElementById('pv-risultato');
+  if (!p) { el.innerHTML = ''; return; }
+
+  var html = '<div class="card" style="padding:18px 20px">';
+  html += '<div style="font-size:13px;color:#777;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">Preventivo per ' + p.device + '</div>';
+
+  for (var i = 0; i < p.voci.length; i++) {
+    var v = p.voci[i];
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #222">';
+    html += '<div style="flex:1">';
+    html += '<div style="font-weight:600">' + v.problema + '</div>';
+    if (v.match) {
+      html += '<div style="font-size:12px;color:#888;margin-top:2px">' + v.descrizionePezzo + (v.fonte === 'magazzino' ? ' <span style="color:#40d080">&#8226; in Magazzino (disp. ' + v.disponibile + ')</span>' : ' <span style="color:#4080ff">&#8226; da Listino Ufficiale</span>') + '</div>';
+      if (v.approssimato) {
+        html += '<div style="font-size:11px;color:#ffaa00;margin-top:2px">&#9888; modello non trovato in modo esatto, verifica corrispondenza prima di confermare</div>';
+      }
+    } else {
+      html += '<div style="font-size:12px;color:#ff6644;margin-top:2px">Nessun ricambio corrispondente trovato &#8212; aggiungilo manualmente</div>';
+    }
+    html += '</div>';
+    html += '<div style="text-align:right;white-space:nowrap;margin-left:14px">';
+    html += '<div>' + (v.prezzoPezzo !== null ? 'EUR ' + v.prezzoPezzo.toFixed(2) : '&#8212;') + ' <span style="color:#555">+ EUR ' + v.manodopera.toFixed(2) + ' manod.</span></div>';
+    html += '<div style="font-weight:700;color:#ff5500">EUR ' + ((v.prezzoPezzo || 0) + v.manodopera).toFixed(2) + '</div>';
+    html += '</div></div>';
+  }
+
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;padding-top:16px;margin-top:6px">';
+  html += '<div style="font-size:12px;color:#777">Pezzi: EUR ' + p.totalePezzi.toFixed(2) + '  &#8226;  Manodopera: EUR ' + p.totaleManodopera.toFixed(2) + '</div>';
+  html += '<div style="font-size:22px;font-weight:800;color:#ff5500">Totale: EUR ' + p.totale.toFixed(2) + '</div>';
+  html += '</div>';
+
+  html += '<div style="display:flex;gap:10px;margin-top:16px">';
+  html += '<button class="btn btn-p" onclick="usaPreventivo()">Usa questo Preventivo &#8594; Nuova Scheda</button>';
+  html += '<button class="btn btn-g" onclick="document.getElementById(\'pv-risultato\').innerHTML=\'\'">Annulla</button>';
+  html += '</div>';
+
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function usaPreventivo() {
+  var p = _ultimoPreventivo;
+  if (!p) return;
+  var problemaTesto = p.voci.map(function(v) { return v.problema; }).join(', ');
+  mostraModaleR();
+  setTimeout(function() {
+    document.getElementById('nr-device').value = p.device;
+    document.getElementById('nr-problema').value = problemaTesto;
+    document.getElementById('nr-costo').value = p.totale.toFixed(2);
+    document.getElementById('nr-note').value = 'Preventivo generato dall\'Assistente:\n' + p.voci.map(function(v) {
+      return '- ' + v.problema + ': ' + (v.descrizionePezzo || 'pezzo non trovato') + ' (EUR ' + (v.prezzoPezzo !== null ? v.prezzoPezzo.toFixed(2) : '0.00') + ' + EUR ' + v.manodopera.toFixed(2) + ' manod.)';
+    }).join('\n');
+  }, 80);
+}
+
+function initPreventivi() {
+  document.getElementById('pv-risultato').innerHTML = '';
+}
+
+function importaCatalogo(i) {
+  var c = _catList[i];
+  if (!c) return;
+  var qty = prompt('Quantita iniziale da inserire in magazzino per "' + c.model + '"?', '1');
+  if (qty === null) return;
+  qty = parseInt(qty) || 0;
+  var cod = (c.brand.substring(0,3) + '-' + c.model.replace(/[^A-Za-z0-9]/g, '').toUpperCase()).substring(0, 16);
+  // se esiste gia un articolo con stesso codice, somma la quantita invece di duplicare
+  var existing = null;
+  for (var k = 0; k < ML.length; k++) { if (ML[k].cod === cod) { existing = ML[k]; break; } }
+  if (existing) {
+    existing.qty += qty;
+  } else {
+    ML.push({ cod: cod, desc: c.brand + ' - ' + c.model, cat: c.cat, qty: qty, min: 1, pac: c.pac, pven: c.pven });
+  }
+  salva();
+  renderMag();
+  showToast('Importato in Magazzino', c.model + ' (qta ' + qty + ')');
+}
+
 
 // ============================================================
 // FATTURE
